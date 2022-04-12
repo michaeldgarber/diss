@@ -1,4 +1,6 @@
-#-----Final basemap wrangling--------------####
+############################################-
+#-----Final basemap wrangling--------------#
+############################################-
 
 #12/5/21
 #I separated this code from the other code which merges the bmap data with the OSM data.
@@ -9,22 +11,21 @@ library(tidyverse)
 library(sf)
 library(mapview)
 library(here)#12/16/21 starting to use here() per Jenny Brian rec.
-#works assumign we're in a project.
-
 
 setwd(here("data-processed"))
 getwd()
-load(file = "bmap_edge_join_geo.RData" )
-load(file = "lookup_edge_id_osm_id_osm.RData")
-load(file = "all_h_osm_wrangle_both_nogeo.RData")
-load(file ="lookup_edge_id_xy_coord.RData")
+load("bmap_edge_join_geo.RData" )
+load("lookup_edge_id_osm_id_osm.RData")
+load("all_h_osm_wrangle_both_nogeo.RData")
+load("lookup_edge_id_xy_coord.RData")
+names(bmap_edge_join_geo) #note that this hasn't actually been run since june 2021; it takes a while
+#[1] "edge_id"         "osm_id_osm"      "osm_id_strava"   "osm_name_strava" "join_aspatial"   "join_spatial"   
+#"osm_indicator"   "geometry" 
 
-
-names(bmap_edge_join_geo) #note that this hasn't actually been run since june 2021
-#[1] "edge_id"         "osm_id_osm"      "osm_id_strava"   "osm_name_strava" "join_aspatial"   "join_spatial"    "osm_indicator"   "geometry" 
 nrow(bmap_edge_join_geo)
 names(lookup_edge_id_osm_id_osm)
 names(all_h_osm_wrangle_both_nogeo)
+# Begin wrangling of edge-level (i.e., not longitudinal) basemap------------------------
 bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
   #update 12/5/21 we should re-link the OSM vars
   #links in all of the OSM variables defined in 1_wrangle_osm.
@@ -37,7 +38,6 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
   
   #12/7/21 link in the diss infra data that you've updated.
   #the main purpose of this is to get the ribbon date approx so you can define open date for the aim 1 infrastructure
-  
   mutate(
     #measure length of each feature
     #note, we also have a length measurement for the osm original file
@@ -72,7 +72,8 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
       #      project_luckie_st_residential==1 ~ "tertiary",
       TRUE ~ highway,
     ),
-    #fix the highway categories. Some that were joined spatially did not link to the original basemap--######
+    ## fix the highway categories----------------
+    #Some that were joined spatially did not link to the original basemap--
     #PATH400 (In Development)
     highway_6cat = case_when(
       grepl("PATH400 (In Development)", osm_name_strava) ~ "path - paved or not",
@@ -167,17 +168,17 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
       major_or_res_other == "residential road" ~ "roadway-type-2",
       major_or_res_other == "other" ~ "roadway-type-3"),
     
-    #manually recode infrastructure that was wrong based on the merge------########
+    ## manually recode infrastructure that was wrong based on the merge with OSM----------
       #or was wrong in OSM because the osm segments aren't short enough.
     
-    #----westview drive sections that were converted back from protected bike lane to conventional-########
+    ### westview drive sections that were converted back from protected bike lane to conventional--------
     #Note, I'm decidi`ng to do this by edge_id in this code rather than by osm_id
     #in the 1_wrangle_osm code because the edge ids are more precise. the osm-id doesn't stop/start where I need it to
     #so this will need to be changed in the longitudinal definition
     project_westview_protected_temporary = case_when(
       edge_id %in% c( 1183781, 1183780, 1183779, 1183778, 1183776, 1183775, 1183777 ) ~ 1),
     
-    #----Path 400 fixes-------####
+    ### Path 400 fixes-------
     #12/4/21 have to define based on edge id rather than OSM id
     project_path_400_old_ivy_to_wieuca = case_when(
       edge_id %in% c(1023660)~ 1,
@@ -207,7 +208,7 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
     ),
 
     
-    #-----ponce buffered bike lane fixes-----#######
+    ### ponce buffered bike lane fixes---------
     # it should stop at myrtle and begin at whole foods/ home depot parking lot. west of piedmont to juniper, 
     #it's a normal conventional bike lane. it's a sharrow west of juniper to peachtree.
     project_ponce_buffered_to_none = case_when(
@@ -221,7 +222,7 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
       edge_id %in% 
         c(985938, 1129039, 985937, 749298, 749297)  ~ 1),
     
-    #------ralph david abernathy (rda fixes)--------------#######
+    ### ralph david abernathy (rda fixes)--------------
     #both of the OSM-id-based indicator vars need fixing.
     #first, make the one near turner field much smaller. simply re-classify it.
     #this completely overwrites the osm-based version
@@ -230,7 +231,7 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
         c(1145925, 360660)  ~ 1,
       TRUE ~ 0),
     
-    #----rda december 2018 lanes--------------------#
+    #### rda december 2018 lanes--------------------
     #also need to split up that section of RDA that we called buffered
     #when it's actually conventional. the ribbon date will be the same.
     #12/17/21 somehow through the merge, the infra didn't transfer as expected
@@ -259,9 +260,10 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
       TRUE ~0
     ),
 
-    #------Decatur work-------------------########    
+    ### Decatur-area work-------------------
     #doing this part 6/2/21
-    #------east lake buffered bike lanes------####
+   
+    #### east lake buffered bike lanes------
     #Per Google Streetview 
     #https://www.google.com/maps/@33.7657443,-84.3116656,3a,75y,179.11h,79.36t/data=!3m7!1e1!3m5!1s46XuDRnTzQwpZlWHsX9zjw!2e0!5s20171001T000000!7i13312!8i6656
     #the buffered lanes were there October 2017
@@ -269,11 +271,13 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
     project_east_lake_buffered = case_when(
       edge_id %in% c(768756, 735117, 256181) ~ 1),
     
-    #missing conventional bike lanes in Decatur----######
+    #### missing conventional bike lanes in Decatur----
     #Park Place near East Lake MARTA
     project_east_lake_park_place_conventional = case_when(
       edge_id %in% c(243018, 257082, 768437, 243018, 1127928) ~ 1),
-    
+   
+   ### re-create infra_6cat var-----------
+  
     infra_6cat = case_when(
       
       project_east_lake_park_place_conventional ==1 ~ "bike_lane_conventional",
@@ -290,7 +294,8 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
       project_rda_cascade_mlk_bike_lane_conv==1 ~ "bike_lane_conventional",
 
       #use the %in% coding. it will be faster.
-      #---set the following to missing------########
+      
+      #### set the following to missing------
       osm_id_strava %in% c(
         525613028, #somehow highland got coded as a bike lane. it's not. it's nothing.
         #it got coded as a bike lane during the merge between the arc-coa data somehow (1_wrangle_osm)
@@ -303,8 +308,7 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
         392357109 #sinclaire
       ) ~ NA_character_ ,
       
-      #exclude by edge_id----#####
-      
+      #### exclude by edge_id----
       edge_id %in% c(
         1271020,
         
@@ -327,10 +331,8 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
         1129304,
         1129303 
       )   ~ NA_character_,
-      
-      
+
       edge_id == "825556" ~ "off_street_trail_paved", 
-      
       edge_id %in% c(
         1093486,  #euclid and moreland walkway at L5P - it's a path
         
@@ -362,7 +364,7 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
       TRUE ~ infra_6cat
     ),
     
-    #re-define the abbrev version (repeating from 1_wrangle_osm code)
+    ### re-define infra_6cat_none_abbrev (repeating from 1_wrangle_osm code)-----------
     infra_6cat_none_abbrev = case_when(
       infra_6cat_none == "off_street_trail_paved" ~ "trail_p", 
       infra_6cat_none == "off_street_trail_dirt" ~ "trail_d", 
@@ -424,7 +426,7 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
     ),
     
     
-    #---finish the diss_a1_any vars (12/5/21)-------##################
+    ##---finish the diss_a1_any vars (12/5/21)-------
     #update 12/17/21 calling these _prelim as the final versions will be created farther below.
     #dissertation aim 1 variables (preliminary; before you add more below)
     diss_a1_any_prelim = case_when(
@@ -445,7 +447,7 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
       TRUE ~ 0
     ),
     
-    #----make an analogous name_section_short variable like I've already------#######
+    #### make an analogous name_section_short variable like I've already------
     #created in the 0_miss_inf_dataprep
     #a long name but I'm specifying that it's any so I 
    #can just restrict to diss_a1_eval if needed.
@@ -497,7 +499,7 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
     #to these infarstructures in Strava, but for descriptive purposes, it's useful)
     
     
-    #-----ribbon date finish and fix---------####
+    #### ribbon date finish and fix---------
     #if ribbon date is missing, set it to before the study. (Jan 1, 2017)
     #This might turn out to be critical 6/2/21
     ribbon_date_missing = case_when(
@@ -537,7 +539,6 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
     #simply make these again
     ribbon_year = lubridate::year(ribbon_date),
     ribbon_month = lubridate::month(ribbon_date) + ribbon_month_after_or_same,
-    
 
     
     #and these - also repeated from the other code
@@ -556,7 +557,7 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
       TRUE ~ribbon_date_source), #from the osm code
 
     
-    #------maximum study month-------#####
+    ### maximum study month-------
     #speaking of the ribbon date, you need a maximum study month so that you
     #can exclude stuff that was open after your study ended
     #without having to summarize the longitudinal infrastructure (defined later)
@@ -577,8 +578,9 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
       ribbon_study_month <= study_month_max_aim1 ~0 ,
       TRUE ~0 #if it's missing, it means it's earlier. anything later should have a date.
     ),
-
-    #-----exclude sidewalks-----#######
+      
+    ## Indicators for excluding for length, e.g., sidewalks & boulevards---------
+    ### exclude sidewalks-----
     infra_exclude_for_length_sidewalks =
       
       #note, this might also be driveways or crosswalks
@@ -789,7 +791,7 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
         ) ~ 1
       ),
     
-    #---this one avoids double-counting boulevards--#######
+    ### double-counting boulevards------------
     infra_exclude_for_length_blvd = case_when(
       edge_id %in% c(
         
@@ -930,7 +932,7 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
       TRUE ~ 0
     ),
     
-    #-----double counting cycletracks---####
+    ### double counting cycletracks----
     infra_exclude_for_length_cycletrack = case_when(
       edge_id %in% c(
         #keeping the roadway file and excluding the one that is specifically coded at the cycletrack
@@ -968,7 +970,7 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
       ) ~ 1
     ),
     
-    #--double counting off-street paths------#####
+    ### double counting off-street paths------
     infra_exclude_for_length_trail_paved = case_when(
       edge_id %in% c(
         #duplicate atlanta beltline westside trail (excluding the one without an osm_id_osm)
@@ -1027,8 +1029,7 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
       TRUE ~ 0
     ),
     
-    
-    #-------a variable that is used in your tables and exclusions.-----####
+    ## a variable that is used in your tables and exclusions------------
     #(only minor concern is these are not time -dependent but that shouldn't be an issue)
     #see my mapview in the basemap checks code. there are quite a few dirt paths and sidewalks
     #and golf cart tracks, etc., that are not coded as infrastructure nor are they passable by a car
@@ -1077,7 +1078,7 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
   
   mutate(edge_id_def_unique  = row_number()) %>% 
   
-    #organize the variables that you care about and then everything else after---##########
+    ## organize the variables that you care about and then everything else after-----
   dplyr::select(
     starts_with("edge_id"),
     starts_with("osm_"), #this gets the IDs, the names, the indicator, the chopped_no
@@ -1112,10 +1113,9 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
     north_south
     )
 
-
-#------save first main one--------##########
+## save first main one-----------
 save(bmap_edge_join_wrangle0, file = "bmap_edge_join_wrangle0.RData")
-#--------checks-----------#####
+## checks-----------
 nrow(bmap_edge_join_wrangle0)
 table(bmap_edge_join_wrangle0$nobikes) #yep
 names(bmap_edge_join_wrangle0)
@@ -1132,10 +1132,12 @@ table(bmap_edge_join_wrangle0$project_path_400)
 #update 10/26/2020 - there are no duplicate edge ids. so remove this superfluous code
 #distinct_edge = bmap_edge_join_wrangle0 %>% distinct(edge_id)
 
-#------------a row number for each osm name-highway combination--------########
+# First set of look-ups----------------
+## a row number for each osm name-highway combination--------
+
 #---Update 10/19/2020 - limit to ROADWAYS ONLY -----#
 #Then link the trails in as intersections only. 
-#The idea is just to generate intersections where cars could be---#
+#The idea is just to generate intersections where cars could be---
 
 bmap_for_osm_name_lookup = bmap_edge_join_wrangle0 %>% 
   st_set_geometry(NULL) %>% 
@@ -1186,16 +1188,14 @@ nrow(bmap_osm_absent)
 #   ) %>% 
 #   View()
 
-
-
 bmap_osm_highway_both = bmap_osm_present %>% 
   bind_rows(bmap_osm_absent) %>% 
   mutate(lookup_name_number_indicator =1)
 
 
-#------combo-id - highway - lookup-----########
+## combo-id - highway - lookup-----
 
-#Updated look-up code for highway combo 10/22/20. See the distinct argument.
+### Updated look-up code for highway combo 10/22/20. See the distinct argument----------
 lookup_osm_name_highway_combo_id = bmap_osm_highway_both %>% 
   st_set_geometry(NULL) %>% 
   distinct(osm_name_highway_combo_id, highway, osm_name_osm, osm_name_strava)
@@ -1239,7 +1239,7 @@ save(lookup_osm_name_infra_combo_id, file = "lookup_osm_name_infra_combo_id.RDat
 save(lookup_osm_name_highway_combo_id_edge_id, file = "lookup_osm_name_highway_combo_id_edge_id.RData")
 load("lookup_osm_name_highway_combo_id_edge_id.RData")
 
-#--------------The final bmap wrangle before longitudinal----------#############
+# Final bmap wrangle before longitudinal----------
 #9/30 - note here I am saving it to both locations. I'd like the "analysis data" location to be used
 #moving forward where I remember to change it, but by saving it to both places, it will make sure
 #that the Strava 2018 folder also has an updated copy in case the working directory is not changed in a code.
@@ -1296,7 +1296,7 @@ summary(bmap_edge_join_group_miss_yes$group_id)
 n_distinct(bmap_edge_join_group_miss_yes$group_id)
 n_distinct(bmap_edge_join_group_miss_yes$edge_id)
 
-#------ ALMOST FINAL bmap_edge_join_wrangle BEFORE LONGITUDINAL---#####
+## ALMOST FINAL bmap_edge_join_wrangle BEFORE LONGITUDINAL-------
 #12/12/21 I changed this so I could define the final final one after I 
 #define the longitudinal one.
 #I used to define bmap_edge_join_wrangle here but doing that down below isntead.
@@ -1310,7 +1310,7 @@ bmap_edge_join_wrangle_pre_long_nogeo = bmap_edge_join_wrangle_pre_long_geo %>%
 save(bmap_edge_join_wrangle_pre_long_nogeo, file = "bmap_edge_join_wrangle_pre_long_nogeo.RData")
 
 
-#-------lookups from bmap_edge_join before longitudinal----####
+## lookups from bmap_edge_join before longitudinal----
 lookup_bmap_edge_geo = bmap_edge_join_wrangle_pre_long_geo %>% 
   dplyr::select(edge_id, geometry)
 save(lookup_bmap_edge_geo, file = "lookup_bmap_edge_geo.RData")
@@ -1321,7 +1321,7 @@ lookup_edge_XY = bmap_edge_join_wrangle_pre_long_geo %>%
   st_set_geometry(NULL)
 save(lookup_edge_XY, file = "lookup_edge_XY.RData")
 
-#look up length variables
+### look up length variables--------------
 lookup_bmap_edge_length = bmap_edge_join_wrangle_pre_long_nogeo %>% 
   dplyr::select(edge_id,  starts_with("length")) %>% 
   mutate(lookup_bmap_edge_length = 1)
@@ -1346,7 +1346,7 @@ save(lookup_group_id, file = "lookup_group_id.RData")
 table(bmap_edge_join_wrangle_pre_long_geo$highway_9cat_num)
 table(bmap_edge_join_wrangle_pre_long_geo$highway_6cat_ordered_with_trunk)
 
-#-----lookup exclude for length------------------#
+### lookup exclude for length------------------
 lookup_infra_exclude_for_length_nogeo = bmap_edge_join_wrangle_pre_long_nogeo %>% 
   dplyr::select(edge_id, infra_exclude_for_length)
 save(lookup_infra_exclude_for_length_nogeo, file = "lookup_infra_exclude_for_length_nogeo.RData")
@@ -1355,7 +1355,7 @@ lookup_infra_exclude_for_length_nogeo = bmap_edge_join_wrangle_pre_long_nogeo %>
   dplyr::select(edge_id, infra_exclude_for_length)
 save(lookup_infra_exclude_for_length_nogeo, file = "lookup_infra_exclude_for_length_nogeo.RData")
 
-#------look-up distinct values for highway-----------#
+### look-up distinct values for highway-----------
 lookup_highway  =  bmap_edge_join_wrangle_pre_long_nogeo %>% 
   distinct(highway, highway_9cat, highway_9cat_num, highway_6cat, 
            highway_6cat_ordered_with_trunk,
@@ -1364,7 +1364,7 @@ lookup_highway  =  bmap_edge_join_wrangle_pre_long_nogeo %>%
 
 save(lookup_highway, file = "lookup_highway.RData")
 
-#------look-up edge-highway values-----------####
+### look-up edge-highway values----------
 #I'm using this for aim 1 to calculate roadway density in each hexagon
 load("bmap_edge_join_wrangle_pre_long_geo.RData")
 lookup_bmap_edge_highway_geo = bmap_edge_join_wrangle_pre_long_geo %>% 
@@ -1379,7 +1379,8 @@ lookup_bmap_edge_highway_nogeo =lookup_bmap_edge_highway_geo %>%
   st_set_geometry(NULL) %>% 
   as_tibble()
 save(lookup_bmap_edge_highway_nogeo, file = "lookup_bmap_edge_highway_nogeo.RData")
-#------look up OSM name--------------------------------------------#
+
+### look up OSM name--------------------------------------------
 lookup_edge_id_osm_id_name = bmap_edge_join_wrangle_pre_long_nogeo %>%
   dplyr::select(edge_id,  osm_id_osm, osm_name_osm )
 save(lookup_edge_id_osm_id_name, file = "lookup_edge_id_osm_id_name.RData")
@@ -1389,7 +1390,7 @@ lookup_edge_osm_name =bmap_edge_join_wrangle_pre_long_nogeo %>%
   distinct(edge_id, osm_name_osm, osm_name_strava)
 save(lookup_edge_osm_name, file = "lookup_edge_osm_name.RData")
 
-#----look up dissertation aim 1 variables----------#####
+### look up dissertation aim 1 variables----------
 #Note that these NEED TO BE UPDATED at the end of the code, but they also need to be defined here.
 #so call them prelim here .
 table(bmap_edge_join_wrangle_pre_long_nogeo$diss_a1_eval_prelim)
@@ -1403,14 +1404,14 @@ lookup_edge_diss_a1_any_prelim = bmap_edge_join_wrangle_pre_long_nogeo %>%
   dplyr::select(edge_id, diss_a1_any_prelim)
 save(lookup_edge_diss_a1_any_prelim, file = "lookup_edge_diss_a1_any_prelim.RData")
 
-#-----look up the project names--------------#
+### look up the project names--------------
 #this will be quite a few. useful. 
 lookup_edge_project = bmap_edge_join_wrangle_pre_long_nogeo %>% 
   dplyr::select(edge_id, starts_with("project_"))
 
 save(lookup_edge_project, file = "lookup_edge_project.RData")
 
-#-----12/5/21 the below code does not need to be repeated....
+# 12/5/21 the below code does not need to be repeated....------------
 
 #load(file = "mp_sf_5halfmi.RData")
 # load(file = "bmap_edge_join_wrangle_pre_long_geo.RData")
@@ -1426,7 +1427,8 @@ save(lookup_edge_project, file = "lookup_edge_project.RData")
 #   summarise(length_km = sum(length_km, na.rm=TRUE))
 
 
-#------a unary union of the basemap---######
+# a unary union of the basemap---
+
 #12/5/21 note you really don't need to repeat this unless you change the map itself (which you won't)
 #so comment it out.
 # library(tidyverse)
@@ -1451,7 +1453,7 @@ save(lookup_edge_project, file = "lookup_edge_project.RData")
 
 # save(bmap_unary_union, file = "bmap_unary_union.RData")
 
-#----LONGITUDINAL BASEMAP (first time) --------######
+#----LONGITUDINAL BASEMAP (first time) --------
 setwd(here("data-processed"))
 #12/21/21 changing the file this is based off of because I want to add some indicators
 #of change to the bmap_edge_join_wrangle_nogeo data
@@ -1467,7 +1469,7 @@ save(lookup_bmap_edge_mo, file = "lookup_bmap_edge_mo.RData")
 names(lookup_bmap_edge_mo)
 
 
-#----Longitudinal  infrastructure (exposure)---####
+## Longitudinal  infrastructure (exposure)--------
 #hmmm, does it make sense to define the longitudinal basemap earlier? That way I can include 
 #If the study month (date) is less than the ribbon date, then set it to something else.
 #Here again 6/2/21. What if ribbon date is missing? Can we assume it was there before study began...
@@ -1512,7 +1514,7 @@ bmap_edge_mo_pre_f_nogeo =  lookup_bmap_edge_mo %>%
   left_join(lookup_bmap_edge_keep_for_long, by = "edge_id") %>% 
   mutate( 
     infra_6cat_long = case_when(
-      #------0. deal with westview drive---##
+      ### deal with westview drive---- 
       #For this unusual one, we have to set it to a bike lane AFTER the ribbon date, 
       #but before this date, it should be protected
       
@@ -1521,7 +1523,7 @@ bmap_edge_mo_pre_f_nogeo =  lookup_bmap_edge_mo %>%
       project_westview_protected_temporary  == 1 &
         study_month >= ribbon_study_month ~ "bike_lane_conventional",
       
-      #----- First, those that do not vary over time. Set them to what they are.--------------------##
+      ### First, those that do not vary over time. Set them to what they are.--------------------
       #I coded a few as having a negative ribbon_study_month, intended to simply mean that it opened
       #before the study
       
@@ -1540,10 +1542,10 @@ bmap_edge_mo_pre_f_nogeo =  lookup_bmap_edge_mo %>%
       grepl("Atlanta BeltLine South", osm_name_osm) &  
         study_month < ribbon_study_month ~ "off_street_trail_dirt",
       
-      #------Second, if it's not these, then set it as none
+      ### Second, if it's not these, then set it as none---------
       study_month < ribbon_study_month ~ "none", 
       
-      #----Third, set it to the infrastructure category if the study month is AFTER the ribbon date
+      ### Third, set it to the infrastructure category if the study month is AFTER the ribbon date--------
       study_month >=  ribbon_study_month ~ infra_6cat_none,
       
       #if the ribbon study month is after 24, that means it's after our study ended, so that should also be ended
@@ -1597,7 +1599,7 @@ bmap_edge_mo_pre_f_nogeo =  lookup_bmap_edge_mo %>%
       TRUE ~ 0) ,
     #can omit the none category...not necessary
     
-    #---length of infrastructure in each category-------------########
+    ###---length of infrastructure in each category-------------
     #the reason for this is so you can take a min and a max on a given
     #edge and assess the change. and then those areas that changed by a
     #certain amount but were not incldued as the main exposure can be
@@ -1608,7 +1610,7 @@ bmap_edge_mo_pre_f_nogeo =  lookup_bmap_edge_mo %>%
     infra_length_mi_4_lane_c =infra_6_dummy_4_lane_c*length_mi, #conventional
     infra_length_mi_5_sharrow =infra_6_dummy_5_sharrow*length_mi, #sharrow
 
-    #----whether the dissertation infra was rideable (open)-----######
+    ###----whether the dissertation infra was rideable (open)------
     #I like the _expo_ syntax to match my hex earlier.
     #Update 12/13/21 2pm I'm calling these expo_line_ to make an easy comparison
     #with expo_buff in the other code. go
@@ -1708,7 +1710,7 @@ bmap_edge_mo_pre_f_nogeo =  lookup_bmap_edge_mo %>%
 
 save(bmap_edge_mo_pre_f_nogeo, file = "bmap_edge_mo_pre_f_nogeo.RData")
 
-#-------look-ups from longitudinal basemap--------########
+## look-ups from longitudinal basemap--------------
 #names(edge_mo_wzeros_nogeo)
 
 
@@ -1735,7 +1737,7 @@ lookup_edge_mo_infra_6_dummy_nogeo = lookup_edge_mo_infra_6_dummy_geo %>%
   as_tibble()
 save(lookup_edge_mo_infra_6_dummy_nogeo, file = "lookup_edge_mo_infra_6_dummy_nogeo.RData")
 
-#-----lookup with infra and ribbon date and exclude for length-----------#
+### lookup with infra and ribbon date and exclude for length-----------
 lookup_edge_mo_infra_ribbon_exclude_geo = bmap_edge_mo_pre_f_nogeo %>% 
   dplyr::select(edge_id, study_month,
                 starts_with("infra"), starts_with("ribbon"), contains("exclude_for")) %>% 
@@ -1743,7 +1745,7 @@ lookup_edge_mo_infra_ribbon_exclude_geo = bmap_edge_mo_pre_f_nogeo %>%
   st_sf()
 
 save(lookup_edge_mo_infra_ribbon_exclude_geo, file = "lookup_edge_mo_infra_ribbon_exclude_geo.RData")
-#-----lookup: infra_6cat with infra_most_protection_ordered---#### 
+### lookup: infra_6cat with infra_most_protection_ordered----------
 lookup_infra_abbrev_ordered = bmap_edge_mo_pre_f_nogeo %>% 
   mutate(
     infra_most_protection_ordered =
@@ -1774,7 +1776,7 @@ setwd(here("data-processed"))
 save(lookup_infra_abbrev_ordered, file = "lookup_infra_abbrev_ordered.RData")
 
 
-#----lookup for table 1 of infra ------######
+### lookup for table 1 of infra ------
 lookup_infra_table_order  = bmap_edge_mo_pre_f_nogeo %>% 
   group_by(infra_6cat_long) %>% 
   summarise(n=n()) %>% 
@@ -1796,7 +1798,7 @@ lookup_infra_table_order  = bmap_edge_mo_pre_f_nogeo %>%
 save(lookup_infra_table_order, file = "lookup_infra_table_order.RData")
 
 
-#--------CHANGE IN INFRASTRUCTURE LENGTH over the study period (aim 1)--------######
+## CHANGE IN INFRASTRUCTURE LENGTH over the study period (aim 1)--------
 #again, we can use this to see where infra changed the most and
 #include as a possible confounder in aim 1
 
@@ -1864,7 +1866,7 @@ edge_infra_change_a1_nogeo = bmap_edge_mo_pre_f_nogeo %>%
   #link in the osm names so I can classify them with some more detail
   left_join(lookup_edge_osm_name, by = "edge_id") %>% 
 #  left_join(lookup_edge_project, by = "edge_id") %>% #add the project indicators. actually just use osm_name_osm
-  #-----add new diss aim 1 infrastructure (covariates)---------------------------############
+  ### add new diss aim 1 infrastructure (covariates)---------------------------
   mutate(
     #this is infrastructure that to date we're not considering a main exposure
     #but we could in some cases
@@ -1945,7 +1947,8 @@ edge_infra_change_a1_geo = edge_infra_change_a1_nogeo %>%
 save(edge_infra_change_a1_geo, file = "edge_infra_change_a1_geo.RData")
 names(edge_infra_change_a1_nogeo)
 
-# #---visualize infra that changes by whether or not it's evaluated in diss a1------############
+### visualize infra that changes by whether or not it's evaluated in diss a1------
+
 # edge_infra_change_a1_nogeo %>% left_join(lookup_bmap_edge_geo, by = "edge_id") %>% mapview()
 # table(bmap_edge_join_wrangle_pre_long_nogeo$diss_a1_eval)
 # table(bmap_edge_join_wrangle_pre_long_nogeo$infra_exclude_for_length)
@@ -1983,7 +1986,7 @@ names(edge_infra_change_a1_nogeo)
 # load("edge_infra_change_a1_nogeo.RData")
 
 
-#-----FINAL FINAL BMAP_EDGE_JOIN_WRANGLE----######
+# FINAL FINAL BMAP_EDGE_JOIN_WRANGLE-----------------------------------------------
 #12/12/21 we're now considering some indicators that summarize time-varying stuff
 #from above
 
@@ -2109,7 +2112,7 @@ table(bmap_edge_join_wrangle$diss_a1_eval)
 
 
 
-#----------------------------------lookups-----------------####
+## lookups----------------------------------------------------
 #-----------------------new indicators-------------------------#
 lookup_diss_a1_new_indicators = bmap_edge_join_wrangle_nogeo %>% 
   dplyr::select(edge_id, 
@@ -2138,15 +2141,15 @@ lookup_diss_a1_any_name_group_short = bmap_edge_join_wrangle_nogeo %>%
 
 save(lookup_diss_a1_any_name_group_short, file = "lookup_diss_a1_any_name_group_short.RData")
 table(lookup_diss_a1_any_name_group_short$diss_a1_eval_name_group_short_ordered)
-#-----other miscellaneous lookups-------------------------------------------------#
-#----look up ribbon dates----------######
+## other miscellaneous lookups-------------------------------------------------
+### look up ribbon dates------------------------
 #both the ride version and the actual version...not sure if different
 lookup_edge_ribbon_date = bmap_edge_join_wrangle_nogeo %>% 
   dplyr::select(edge_id, ribbon_date) 
 names(lookup_edge_ribbon_date)
 save(lookup_edge_ribbon_date, file = "lookup_edge_ribbon_date.RData")
 
-#---lookup infra6cat vs infra6cat abbreviated----#
+### lookup infra6cat vs infra6cat abbreviated------------------------
 
 lookup_infra_6cat_none_abbrev = bmap_edge_join_wrangle_nogeo %>% 
   distinct(infra_6cat_none, infra_6cat_none_abbrev)
@@ -2154,7 +2157,7 @@ lookup_infra_6cat_none_abbrev = bmap_edge_join_wrangle_nogeo %>%
 save(lookup_infra_6cat_none_abbrev, file = "lookup_infra_6cat_none_abbrev.RData")
 
 
-#-----lookup important stuff but length---------#############
+### lookup important stuff but length------------------------
 #load(file = "bmap_edge_join_wrangle_pre_long_geo.RData")
 #note this is a little confusing because it actually includes some variables from the
 #initial strava basemap, so let's call this something else
@@ -2184,7 +2187,7 @@ lookup_edge_id_import_vars_but_length = bmap_edge_join_wrangle_nogeo %>%
 
 save(lookup_edge_id_import_vars_but_length, file = "lookup_edge_id_import_vars_but_length.RData")
 
-#------FINAL FINAL LONGITUDINAL BASEMAP --------######
+# FINAL FINAL LONGITUDINAL BASEMAP ---------------------------------------
 library(tidyverse)
 library(sf)
 library(here)
@@ -2302,7 +2305,7 @@ bmap_edge_mo_nogeo = bmap_edge_mo_pre_f_nogeo %>%
       TRUE ~0
     ),
     
-    #-----length of infrastructure excluding those we're evaluating------###########
+    ## length of infrastructure excluding those we're evaluating----------------
     #calculating it this way will make it easy to sump up by hexagon.
     #to make it easier, flip your eval, so 1 is NOT evaluating
     expo_line_eval_flipped = abs(1-expo_line_eval),
@@ -2323,7 +2326,7 @@ save(bmap_edge_mo_nogeo, file = "bmap_edge_mo_nogeo.RData")
 # expo_line_any
 
 
-#-look up dissertation variables by month--------####
+## look up dissertation variables by month-----------------
 #load("bmap_edge_mo_nogeo.RData")
 lookup_diss_a1_edge_mo= bmap_edge_mo_nogeo %>% 
   dplyr::select(edge_id, study_month, starts_with("diss_a1")) 
@@ -2332,7 +2335,7 @@ save(lookup_diss_a1_edge_mo, file = "lookup_diss_a1_edge_mo.RData")
 lookup_edge_mo_expo_line = bmap_edge_mo_nogeo %>% 
   dplyr::select(edge_id, study_month, starts_with("expo_line"))
 save(lookup_edge_mo_expo_line, file = "lookup_edge_mo_expo_line.RData")
-#------dissertation aim 1 correct measurements and buffer area------######
+### dissertation aim 1 correct measurements and buffer area----------------
 #hmm, we're still not excluding the WST dirt area. must be because of the spatial join?
 #so for this we're going to bring in a couple of things to fix it, just for the 
 #correct geometry.
@@ -2428,13 +2431,14 @@ save(bmap_diss_a1_corrected_geo, file = "bmap_diss_a1_corrected_geo.RData")
 
 
 #For the buffer areas, don't worry about it, as it's almost the exact same.
-#------Define buffers-------##########
+
+# Define buffers for aim 1----------------------
 bmap_edge_join_wrangle_nogeo %>% 
   filter(diss_a1_eval==1) %>%   
   group_by(diss_a1_any_name_section_short) %>% 
   summarise(n=n())
 
-#------1-mile buffer-------##########
+## 1-mile buffer--------------
 # library(tidyverse)
 # library(sf)
 # library(mapview)
@@ -2458,7 +2462,7 @@ bmap_diss_a1_any_buff_1_mi =  bmap_edge_join_wrangle %>%
 save(bmap_diss_a1_any_buff_1_mi, file = "bmap_diss_a1_any_buff_1_mi.RData")
 
 
-#------1/2-mile buffer-------##########
+## 1/2-mile buffer------------------------------------
 bmap_diss_a1_any_buff_half_mi =  bmap_edge_join_wrangle %>% 
   filter(infra_exclude_for_length==0) %>%  #important to keep wst correct
   #  filter(diss_a1_eval==1) %>%   

@@ -2,7 +2,7 @@
 #Date began 9/17/18
 #Date revised 2/5/19
 #Revised 9/23/2020
-#Here again 4/19/21 (but not repeating the  data pull)
+#Here again 4/19/21 (but not repeating thedata pull)
 
 #------Load packages--------#
 library(tidyverse)
