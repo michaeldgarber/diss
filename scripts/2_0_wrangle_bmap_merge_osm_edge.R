@@ -1,6 +1,5 @@
 #filename:2_0_wrangle_bmap_merge_osm_edge
 
-
 #12/5/21 I decided to split this off from the other 2_wrangle_basemap code.
 #Note that all of this code used to be in 2_wrangle_basemap before 12/5/21
 #The reason for splitting it off is that, in theory, it should not need to be run very often at all, only
@@ -148,7 +147,7 @@ bmap_edge_join_asp_geo = edge_bmap_20180630_sf %>%
     starts_with("osm_id"),
     starts_with("osm_name"),
 #    starts_with("osm_ind"), #drop this as it will link back in.
-    starts_with("join") #will only grab joinaspatial here
+    starts_with("join") #will only grab join_aspatial here
     ) 
 
 class(bmap_edge_join_asp_geo)

@@ -1,6 +1,9 @@
+#-----Final basemap wrangling--------------####
+
 #12/5/21
 #I separated this code from the other code which merges the bmap data with the OSM data.
 #that code is now titled filename:2_0_wrangle_bmap_merge_osm_edge
+#April 12 2022 - you should go through this code and organize it using the rmarkdown-style headers
 
 library(tidyverse)
 library(sf)
@@ -8,7 +11,6 @@ library(mapview)
 library(here)#12/16/21 starting to use here() per Jenny Brian rec.
 #works assumign we're in a project.
 
-#-----Final basemap wrangling--------------####
 
 setwd(here("data-processed"))
 getwd()

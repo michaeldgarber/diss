@@ -13,7 +13,6 @@ library(rgdal)
 library(sf)
 library(raster)
 library(mapview) #loads leaflet.
-library(plotrix) #so you can look at your color names
 library(readxl)
 library(RColorBrewer)
 library(osmdata)
