@@ -463,11 +463,9 @@ save(cycleway_line_i285, file = "cycleway_line_i285.RData")
 
 #--------Load all of these---------------#
 #moved here 12/19/21
-#C:\Users\mdg71\Dropbox\EMORY\General research\Dissertation\diss-proj\data-processed\osm data
+#data-processed\osm data
 setwd(here("data-processed", "osm data"))
 
-# setwd(file.path("C:", "Users", "mdg71", "Dropbox", "EMORY", "General research",  
-#                 "Dissertation", "R_data", "osm data"))
 # #note static working directory
 # load(file = "motorway_line_i285.RData")
 # load(file = "trunk_line_i285.RData")
