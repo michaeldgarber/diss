@@ -1188,6 +1188,14 @@ nrow(bmap_osm_absent)
 #   ) %>% 
 #   View()
 
+#need this for aim-3 analytic sample
+lookup_infra_trail_p_on_roadway = bmap_edge_join_wrangle0 %>% 
+  st_set_geometry(NULL) %>% 
+  distinct(edge_id, infra_trail_p_on_roadway) %>% 
+  as_tibble()
+
+save(lookup_infra_trail_p_on_roadway, file = "lookup_infra_trail_p_on_roadway.RData")  
+
 bmap_osm_highway_both = bmap_osm_present %>% 
   bind_rows(bmap_osm_absent) %>% 
   mutate(lookup_name_number_indicator =1)
@@ -1229,6 +1237,7 @@ nrow(lookup_osm_name_highway_9cat_combo_id)
 lookup_osm_name_highway_combo_id_edge_id = bmap_osm_highway_both %>% 
   st_set_geometry(NULL) %>% 
   distinct( edge_id, lookup_name_number_indicator, osm_name_highway_combo_id)
+
 
 
 
@@ -1303,6 +1312,9 @@ n_distinct(bmap_edge_join_group_miss_yes$edge_id)
 bmap_edge_join_wrangle_pre_long_geo = bmap_edge_join_group_miss_yes %>% 
   bind_rows(bmap_edge_join_group_miss_no) 
 
+
+table(bmap_edge_join_wrangle_pre_long_geo$group_id)
+
 save(bmap_edge_join_wrangle_pre_long_geo, file = "bmap_edge_join_wrangle_pre_long_geo.RData")
 bmap_edge_join_wrangle_pre_long_nogeo = bmap_edge_join_wrangle_pre_long_geo %>% 
   st_set_geometry(NULL) %>% 
@@ -1311,13 +1323,23 @@ save(bmap_edge_join_wrangle_pre_long_nogeo, file = "bmap_edge_join_wrangle_pre_l
 
 
 ## lookups from bmap_edge_join before longitudinal----
+### lookup main geometry----------------------
 lookup_bmap_edge_geo = bmap_edge_join_wrangle_pre_long_geo %>% 
   dplyr::select(edge_id, geometry)
 save(lookup_bmap_edge_geo, file = "lookup_bmap_edge_geo.RData")
 nrow(lookup_bmap_edge_geo)
 
+#### lookup geometry restricted to 5.5.-half-mile buffer for certain aim-2-3-related subsets----------
+load("mp_sf_5halfmi.RData")
+lookup_bmap_edge_aim3_geo = lookup_bmap_edge_geo %>% 
+  st_intersection(mp_sf_5halfmi) %>% 
+  dplyr::select(edge_id, geometry)
+
+save(lookup_bmap_edge_aim3_geo, file = "lookup_bmap_edge_aim3_geo.RData")  
+lookup_bmap_edge_aim3_geo %>% mapview()
+
 lookup_edge_XY = bmap_edge_join_wrangle_pre_long_geo %>% 
-  dplyr::select(edge_id,     x_coord_1, y_coord_1, x_coord_2, y_coord_2  ) %>% 
+  dplyr::select(edge_id, x_coord_1, y_coord_1, x_coord_2, y_coord_2  ) %>% 
   st_set_geometry(NULL)
 save(lookup_edge_XY, file = "lookup_edge_XY.RData")
 
@@ -1410,6 +1432,7 @@ lookup_edge_project = bmap_edge_join_wrangle_pre_long_nogeo %>%
   dplyr::select(edge_id, starts_with("project_"))
 
 save(lookup_edge_project, file = "lookup_edge_project.RData")
+
 
 # 12/5/21 the below code does not need to be repeated....------------
 
@@ -1802,7 +1825,6 @@ save(lookup_infra_table_order, file = "lookup_infra_table_order.RData")
 #again, we can use this to see where infra changed the most and
 #include as a possible confounder in aim 1
 
-# here()
 load("bmap_edge_mo_pre_f_nogeo.RData")
 load("lookup_edge_diss_a1_eval_prelim.RData")
 load("lookup_edge_diss_a1_any_prelim.RData")
@@ -1998,6 +2020,7 @@ bmap_edge_join_wrangle_pre_long_nogeo %>%
   dplyr::select(starts_with("diss_a1_")) %>% 
   names()
 bmap_edge_join_wrangle = bmap_edge_join_wrangle_pre_long_geo %>% 
+  st_transform(4326) %>% 
   left_join(edge_infra_change_a1_nogeo, by = "edge_id") %>% 
   #redefine the infra add-ons
   mutate(
@@ -2078,7 +2101,7 @@ bmap_edge_join_wrangle_nogeo = bmap_edge_join_wrangle %>%
   st_set_geometry(NULL) %>% 
   as_tibble()
 save(bmap_edge_join_wrangle_nogeo, file = "bmap_edge_join_wrangle_nogeo.RData")
-
+st_crs(bmap_edge_join_wrangle)
 table(bmap_edge_join_wrangle$diss_a1_lsl_gtp_iva)
 table(bmap_edge_join_wrangle$diss_a1_ws)
 table(bmap_edge_join_wrangle$diss_a1_any_name_section_short) #good. worked.
@@ -2444,6 +2467,8 @@ bmap_edge_join_wrangle_nogeo %>%
 # library(mapview)
 # load("bmap_edge_join_wrangle.RData") #Load in case not running the whole thing
 # table(bmap_edge_join_wrangle$diss_a1_any_name_section_short)
+#4/12/22 I'm getting weird things where the st_buffer isn't working
+#conver to feet, create buffer, and then convert back to 4326
 bmap_diss_a1_any_buff_1_mi =  bmap_edge_join_wrangle %>% 
   filter(infra_exclude_for_length==0) %>%  #important to keep wst correct
 #  filter(diss_a1_eval==1) %>%   
@@ -2452,7 +2477,9 @@ bmap_diss_a1_any_buff_1_mi =  bmap_edge_join_wrangle %>%
   summarise(length= sum(length_m, na.rm=TRUE)) %>% #doesn't matter what, just pick something
   st_union(by_feature = TRUE) %>% 
   ungroup() %>% 
-  st_buffer(1609.344) %>%  #1 mile in meters
+  st_transform(2240) %>% #ft; see https://spatialreference.org/ref/?search=georgia
+  st_buffer(5280) %>%  #1 mile in feet now; 4/12/22
+  st_transform(4326) %>% 
   #to be consistent with your existing code:
   mutate(
     buffer_size_mi = 1,
@@ -2460,9 +2487,11 @@ bmap_diss_a1_any_buff_1_mi =  bmap_edge_join_wrangle %>%
   )
 
 save(bmap_diss_a1_any_buff_1_mi, file = "bmap_diss_a1_any_buff_1_mi.RData")
-
+bmap_diss_a1_any_buff_1_mi %>% mapview(zcol = "diss_a1_any_name_section_short")
 
 ## 1/2-mile buffer------------------------------------
+st_crs(bmap_edge_join_wrangle)
+5280/2
 bmap_diss_a1_any_buff_half_mi =  bmap_edge_join_wrangle %>% 
   filter(infra_exclude_for_length==0) %>%  #important to keep wst correct
   #  filter(diss_a1_eval==1) %>%   
@@ -2471,7 +2500,9 @@ bmap_diss_a1_any_buff_half_mi =  bmap_edge_join_wrangle %>%
   summarise(length= sum(length_m, na.rm=TRUE)) %>% #doesn't matter what, just pick something
   st_union(by_feature = TRUE) %>% 
   ungroup() %>% 
-  st_buffer(804.672) %>%  #1 mile in meters
+  st_transform(2240) %>% #ft; see https://spatialreference.org/ref/?search=georgia
+  st_buffer(5280/2) %>%  #1/2 mile in feet now; 4/12/22
+  st_transform(4326) %>% 
   #to be consistent with your existing code:
   mutate(
     buffer_size_mi = "half",
@@ -2481,6 +2512,9 @@ bmap_diss_a1_any_buff_half_mi =  bmap_edge_join_wrangle %>%
 save(bmap_diss_a1_any_buff_half_mi, file = "bmap_diss_a1_any_buff_half_mi.RData")
 
 #visualize and compare with what if I had done it using the basemap wrangle ONLY
-mapview(bmap_diss_a1_any_buff_half_mi, zcol = "diss_a1_any_name_section_short")
+mapview(
+  bmap_diss_a1_any_buff_half_mi, 
+  zcol = "diss_a1_any_name_section_short",
+  col.regions = rainbow(n=n_distinct(bmap_diss_a1_any_buff_half_mi$diss_a1_any_name_section_short)))
 
 

@@ -6,11 +6,8 @@
 
 #------Load packages--------#
 library(tidyverse)
-library(ggmap)
-library(ggspatial) #this loads sp
-#library(sp)
-library(rgdal) 
 library(sf)
+library(ggmap)
 library(raster)
 library(mapview) #loads leaflet.
 library(readxl)
@@ -77,8 +74,6 @@ load(file = "i285_convhull_4326.RData")
 #and restrict the number of steps.
 
 #another update 9/24/2020 - I'm getting rid of the f superscript and trying to simplify this code.
-options(viewer = NULL) #send viewer to the browser
-options(browser = "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe")
 
 #--------DO NOT RUN-----------------###############
 #12/16/21 
