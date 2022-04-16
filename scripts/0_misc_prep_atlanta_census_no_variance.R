@@ -170,10 +170,12 @@ atl_tracts_a1_geo = atl_tracts_a1_int_bmap_geo %>%
   #so I can see the vars easier, print them in this order
   dplyr::select(
     tract_id, starts_with("pop_tot"), starts_with("pop_dens"),
-    starts_with("race_tot"), starts_with("race_w"), starts_with("race_b"),starts_with("race_nw_"), starts_with("race_o_"),
+    starts_with("race_tot"), starts_with("race_w"), starts_with("race_b"),
+    starts_with("race_nw_"), starts_with("race_o_"),
     starts_with("age_me"),
     starts_with("hh_inc"),
-    starts_with("h_val"), starts_with("t_to_w_tot"), starts_with("t_to_w_b"), starts_with("tract_ar"),
+    starts_with("h_val"), starts_with("t_to_w_tot"), starts_with("t_to_w_b"), 
+    starts_with("tract_ar"),
     everything(), -NAME, -GEOID
   )
 
