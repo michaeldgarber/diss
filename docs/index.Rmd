@@ -1,0 +1,10 @@
+---
+title: "diss"
+output:
+  html_document:
+    highlight: textmate
+    include:
+      after_body: footer.html
+---
+
+A placeholder index page for dissertation-related updates.
