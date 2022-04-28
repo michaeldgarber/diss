@@ -7,6 +7,8 @@ output:
     toc: true  
     toc_float: true
     toc_depth: 4
+    include:
+      after_body: footer.html
 bibliography: references.bib
 csl: american-medical-association.csl
 link-citations: true
@@ -143,36 +145,36 @@ mv_all_three@map %>%
 
 Abbreviation definitions for treatment areas:
 
--   WST-PCG: Atlanta BeltLine Westside Trail & Proctor Creek Greenway
+-   **WST-PCG**: Atlanta BeltLine Westside Trail & Proctor Creek Greenway
 
--   LS-TECH-IAP: Luckie Street NW Protected Bike Lane & Georgia Tech PATH Parkway & Ivan Allen PATH
+-   **LS-TECH-IAP**: Luckie Street NW Protected Bike Lane & Georgia Tech PATH Parkway & Ivan Allen PATH
 
--   EST-EXT: Atlanta BeltLine Eastside Trail Extension
+-   **EST-EXT**: Atlanta BeltLine Eastside Trail Extension
 
--   MCD: North McDonough St Protected Bike Lane
+-   **MCD**: North McDonough St Protected Bike Lane
 
--   NT: never treated
+-   **NT**: never treated
 
 Abbreviation definitions for treatment infrastructure:
 
--   WST: Atlanta BeltLine Westside Trail
+-   **WST**: Atlanta BeltLine Westside Trail
 
--   PCG: Proctor Creek Greenway
+-   **PCG**: Proctor Creek Greenway
 
--   LS: Luckie St NW Protected Bike Lane
+-   **LS**: Luckie St NW Protected Bike Lane
 
--   TECH: Georgia Tech PATH Parkway
+-   **TECH**: Georgia Tech PATH Parkway
 
--   IAP: Ivan Allen PATH
+-   **IAP**: Ivan Allen PATH
 
--   EST-EXT1: Atlanta Beltline Eastide Trail: *Krog St NE to Beltline corridor via Wylie St SE*
+-   **EST-EXT1**: Atlanta Beltline Eastide Trail: *Krog St NE to Beltline corridor via Wylie St SE*
 
--   EST-EXT2: Atlanta Beltline Eastide Trail: *Irwin St NE to Edgewood Ave NE*
+-   **EST-EXT2**: Atlanta Beltline Eastide Trail: *Irwin St NE to Edgewood Ave NE*
 
--   EST-EXT3: Atlanta Beltline Eastide Trail: Wylie St SE to Kirkwood Ave SE via BeltLine corridor
+-   **EST-EXT3**: Atlanta Beltline Eastide Trail: Wylie St SE to Kirkwood Ave SE via BeltLine corridor
 
--   PCT1: South Peachtree Creek Trail: *Mason Mill Park to N Druid Hills Rd*
+-   **PCT1**: South Peachtree Creek Trail: *Mason Mill Park to N Druid Hills Rd*
 
--   PCT2: South Peachtree Creek Trail: *Starvine Way to Clairmont Rd underpass*
+-   **PCT2**: South Peachtree Creek Trail: *Starvine Way to Clairmont Rd underpass*
 
 # References

@@ -1,0 +1,24 @@
+name: "Michael Garber"
+output_dir: "."
+navbar:
+  left:
+    - icon: fa-home
+      href: https://michaeldgarber.github.io/index.html
+      text: "MDG"
+    - text: "Papers"
+      href: https://michaeldgarber.github.io/papers.html
+    - text: "Posts"
+      href: https://michaeldgarber.github.io/posts.html
+    - text: "Projects"
+      href: https://michaeldgarber.github.io/projects.html
+      menu:
+        - text: "green-space-denver"
+          href: https://michaeldgarber.github.io/green-space-denver/
+
+output:
+  html_document:
+#    toc: true
+    toc_float: true
+    highlight: textmate
+    include:
+      after_body: footer.html

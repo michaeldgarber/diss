@@ -8,3 +8,6 @@ output:
 ---
 
 A placeholder index page for dissertation-related updates.
+So far, I have this dissertation-related post:
+
+https://michaeldgarber.github.io/diss/atl-bike-gsynth.html
