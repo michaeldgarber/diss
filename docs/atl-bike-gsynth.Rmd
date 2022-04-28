@@ -1,0 +1,178 @@
+---
+title: "Effect of bicycle infrastructure on bicycling in Atlanta: interactive map"
+author: "Michael D Garber"
+date: "Updated April 28 2022"
+output: 
+  html_document:
+    toc: true  
+    toc_float: true
+    toc_depth: 4
+bibliography: references.bib
+csl: american-medical-association.csl
+link-citations: true
+---
+
+# Interactive map
+
+This map corresponds to a paper[@garber2022] estimating the effect of groups of paved trails and protected bike lanes on bicycling in Atlanta. In that paper, we used a combination of Strava data and on-the-ground counters to measure bicycling and the generalized synthetic control method[@xu2017] to estimate effects of the infrastructure on bicycling.
+
+Figure 1 in the paper maps the infrastructure we studied and the corresponding treatment areas. Below is a similar figure mapped interactively to allow more detail to be seen.
+
+```{r,  eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+#Note this code is mostly copied with some adaptations from
+#~diss/scripts/a1_epid_r1_tables_figures/a1_epid_r1_fig1_study_area_expo.R
+library(tidyverse)
+library(sf)
+library(mapview)
+library(here)
+library(RColorBrewer)
+library(shades)
+setwd(here("data-processed"))
+load("bmap_diss_a1_corrected_geo.RData")
+load("lookup_hex_expo_line_which_geo.RData")
+load("lookup_hex_expo_buff_which_geo.RData")
+load("lookup_name_group_short_present.RData")
+vis_expo_line_geo = lookup_hex_expo_line_which_geo %>% 
+  left_join(lookup_name_group_short_present, by = "expo_line_which")
+vis_expo_buff_geo = lookup_hex_expo_buff_which_geo %>% 
+  left_join(lookup_name_group_short_present, by = "expo_buff_which")
+
+#--------Define palettes for mapviews--#######
+#cb for color brewer
+cb_accent_n5 = RColorBrewer::brewer.pal(5, "Accent")
+cb_accent_n5_custom_for_NT = c(cb_accent_n5, "gray70") #accent
+cb_set1_n5 = RColorBrewer::brewer.pal(5, "Set1")
+cb_set1_n5_custom_for_NT = c(cb_set1_n5, "gray70") #add grey to the palette
+cb_set2_n5 = RColorBrewer::brewer.pal(5, "Set2")
+cb_set2_n5_custom_for_NT = c(cb_set2_n5, "gray70") #add grey to the palette
+cb_set3_n5 = RColorBrewer::brewer.pal(5, "Set3")
+cb_set3_n5_custom_for_NT = c(cb_set3_n5, "gray70") #add grey to the palette
+
+# Wide-neat treatment area
+cb_accent_n5 = RColorBrewer::brewer.pal(5, "Accent")
+cb_accent_n5_custom_for_NT = c(cb_accent_n5, "gray70") #accent
+cb_set1_n5 = RColorBrewer::brewer.pal(5, "Set1")
+cb_set1_n5_custom_for_NT = c(cb_set1_n5, "gray70") #add grey to the palette
+cb_set2_n5 = RColorBrewer::brewer.pal(5, "Set2")
+cb_set2_n5_custom_for_NT = c(cb_set2_n5, "gray70") #add grey to the palette
+cb_set3_n5 = RColorBrewer::brewer.pal(5, "Set3")
+cb_set3_n5_custom_for_NT = c(cb_set3_n5, "gray70") #add grey to the palette
+
+
+#------Figure 1. lines themselves--------##########
+load("bmap_diss_a1_corrected_geo.RData")
+#Build this custom. If an area has several constitutent sections, make it
+#brighter or darker.
+pal_wst = cb_set2_n5_custom_for_NT[1] %>% brightness(.25)
+pal_pro = cb_set2_n5_custom_for_NT[1] %>% brightness(.5)
+pal_lsl = cb_set2_n5_custom_for_NT[2] %>% brightness(.333)
+pal_gtp = cb_set2_n5_custom_for_NT[2] %>% brightness(.5)
+pal_iva = cb_set2_n5_custom_for_NT[2] %>% brightness(.666)
+pal_est1 = cb_set2_n5_custom_for_NT[3] %>% brightness(.333)
+pal_est2 = cb_set2_n5_custom_for_NT[3] %>% brightness(.5)
+pal_est3 = cb_set2_n5_custom_for_NT[3] %>% brightness(.666)
+pal_pct1 = cb_set2_n5_custom_for_NT[4] %>% brightness(.33)
+pal_pct2 = cb_set2_n5_custom_for_NT[4] %>% brightness(.666)
+pal_mcd = cb_set2_n5_custom_for_NT[5] %>% brightness(.5)
+
+pal_n11_custom = c(
+  pal_wst,
+  pal_pro,
+  pal_lsl,
+  pal_gtp,
+  pal_iva,
+  pal_est1,
+  pal_est2,
+  pal_est3,
+  pal_pct1,
+  pal_pct2,
+  pal_mcd
+)
+
+# Create mapviews
+
+## The buffer areas----------
+mapviewOptions(
+  homebutton = FALSE,
+  legend.pos = "bottomleft")
+mapviewOptions(
+  homebutton = FALSE,
+  legend.pos = "bottomleft")
+mv_expo_line_n5 = vis_expo_line_geo %>%
+  dplyr::select(inf_group_abbrev_ordered_inc_NT, name_group_short, name_section_short, geometry ) %>% 
+  mapview(
+    map.types = "CartoDB.Positron",
+    zcol = "inf_group_abbrev_ordered_inc_NT",
+    layer.name = "Narrower treatment-area definition",
+    alpha.regions = .7,
+    col.regions = cb_set2_n5_custom_for_NT
+  )
+
+mv_expo_buff_n5 = vis_expo_buff_geo %>%
+  dplyr::select(inf_group_abbrev_ordered_inc_NT, name_group_short, name_section_short, geometry ) %>% 
+  mapview(
+    map.types = "CartoDB.Positron",
+    zcol = "inf_group_abbrev_ordered_inc_NT",
+    layer.name = "Wide-net treatment-area definition",
+    alpha.regions = .7,
+    col.regions = cb_set2_n5_custom_for_NT
+  )
+
+#The infrastructure themselves
+mapviewOptions(
+  homebutton = FALSE,
+  legend.pos = "bottomright")
+mv_expo_infra_n11=bmap_diss_a1_corrected_geo %>% 
+  dplyr::select(diss_a1_eval_fac_t1,length_mi_diss_a1_correct, geometry ) %>% 
+  mapview(
+    map.types = "CartoDB.Positron",
+    zcol = "diss_a1_eval_fac_t1",
+    layer.name = "Treatment infrastructure",
+    color  = pal_n11_custom
+)
+
+library(leaflet)
+library(leaflet.extras)
+mv_all_three = mv_expo_buff_n5 + 
+  mv_expo_line_n5 +  
+  mv_expo_infra_n11
+
+mv_all_three@map %>% 
+  addFullscreenControl()
+```
+
+Abbreviation definitions for treatment areas:
+
+-   WST-PCG: Atlanta BeltLine Westside Trail & Proctor Creek Greenway
+
+-   LS-TECH-IAP: Luckie Street NW Protected Bike Lane & Georgia Tech PATH Parkway & Ivan Allen PATH
+
+-   EST-EXT: Atlanta BeltLine Eastside Trail Extension
+
+-   MCD: North McDonough St Protected Bike Lane
+
+-   NT: never treated
+
+Abbreviation definitions for treatment infrastructure:
+
+-   WST: Atlanta BeltLine Westside Trail
+
+-   PCG: Proctor Creek Greenway
+
+-   LS: Luckie St NW Protected Bike Lane
+
+-   TECH: Georgia Tech PATH Parkway
+
+-   IAP: Ivan Allen PATH
+
+-   EST-EXT1: Atlanta Beltline Eastide Trail: *Krog St NE to Beltline corridor via Wylie St SE*
+
+-   EST-EXT2: Atlanta Beltline Eastide Trail: *Irwin St NE to Edgewood Ave NE*
+
+-   EST-EXT3: Atlanta Beltline Eastide Trail: Wylie St SE to Kirkwood Ave SE via BeltLine corridor
+
+-   PCT1: South Peachtree Creek Trail: *Mason Mill Park to N Druid Hills Rd*
+
+-   PCT2: South Peachtree Creek Trail: *Starvine Way to Clairmont Rd underpass*
+
+# References
