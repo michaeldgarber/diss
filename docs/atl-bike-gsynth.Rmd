@@ -18,7 +18,7 @@ link-citations: true
 
 This map corresponds to a paper[@garber2022] estimating the effect of groups of paved trails and protected bike lanes on bicycling in Atlanta. In that paper, we used a combination of Strava data and on-the-ground counters to measure bicycling and the generalized synthetic control method[@xu2017] to estimate effects of the infrastructure on bicycling.
 
-Figure 1 in the paper maps the infrastructure we studied and the corresponding treatment areas. Below is a similar figure mapped interactively to allow more detail to be seen.
+Figure 1 in the [paper](https://journals.lww.com/epidem/Abstract/9900/Have_paved_trails_and_protected_bike_lanes_led_to.15.aspx) maps the infrastructure we studied and the corresponding treatment areas. Below is a similar figure mapped interactively to allow more detail to be seen.
 
 ```{r,  eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
 #Note this code is mostly copied with some adaptations from
