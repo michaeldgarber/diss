@@ -171,10 +171,12 @@ Abbreviation definitions for treatment infrastructure:
 
 -   **EST-EXT2**: Atlanta Beltline Eastide Trail: *Irwin St NE to Edgewood Ave NE*
 
--   **EST-EXT3**: Atlanta Beltline Eastide Trail: Wylie St SE to Kirkwood Ave SE via BeltLine corridor
+-   **EST-EXT3**: Atlanta Beltline Eastide Trail: *Wylie St SE to Kirkwood Ave SE via BeltLine corridor*
 
 -   **PCT1**: South Peachtree Creek Trail: *Mason Mill Park to N Druid Hills Rd*
 
 -   **PCT2**: South Peachtree Creek Trail: *Starvine Way to Clairmont Rd underpass*
+
+-   **MCD**: North McDonough St Protected Bike Lane
 
 # References
