@@ -1,0 +1,16 @@
+---
+title: Have paved trails and protected bike lanes led to more bicycling in Atlanta?  A
+  generalized synthetic-control analysis
+author: "Michael D Garber"
+output:
+  xaringan::moon_reader:
+    self_contained: yes
+---
+
+---
+
+One slide.
+
+---
+
+Another slide.
