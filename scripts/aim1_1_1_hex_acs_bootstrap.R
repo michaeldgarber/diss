@@ -32,8 +32,10 @@ bootstrap_hex_tracts_acs <-function(s_id_val){
     mutate(
       #use the normal distribution (rnorm) because they give us a MOE which
       #can be converted into standard deviation
-      #Note 12/11/21, I initially renamed these to indicate that they were sampled, as in pop_tot_s,
-      #but I think for simplicity, I don't need to do that. I will know that they're sampled based
+      #Note 12/11/21, I initially renamed these to indicate that they were sampled, 
+      #as in pop_tot_s,
+      #but I think for simplicity, I don't need to do that. 
+      #I will know that they're sampled based
       #on the fact that they're in this _s dataset.
       
       pop_tot = truncnorm::rtruncnorm(n=n(), mean=pop_tot, sd=pop_tot_sd, a=0),
