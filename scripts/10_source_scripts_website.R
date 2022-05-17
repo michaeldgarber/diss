@@ -8,6 +8,8 @@
 library(here)
 getwd()
 library(rmarkdown)
+
+
 #render the normal rmarkdown stuff
 rmarkdown::render(here("docs", "index.Rmd"))
 rmarkdown::render(here("docs", "atl-bike-gsynth.Rmd"))

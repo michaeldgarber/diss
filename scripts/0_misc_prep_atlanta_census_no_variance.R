@@ -74,7 +74,7 @@ atl_tracts_acs5_20152019_geo  = get_acs(
 )
                     
               
-#mapview(atl_tracts_acs5_20152019_geo, zcol = "race_bE")
+mapview(atl_tracts_acs5_20152019_geo, zcol = "race_bE")
 
 #save to the analysis data folder rather than the other one to avoid having to change your working directory
 setwd(here("data-processed"))
@@ -131,6 +131,7 @@ atl_tracts_a1_int_bmap_geo = atl_tracts_acs5_20152019_geo %>%
 
 nrow(atl_tracts_a1_int_bmap_geo)
 
+
 names(atl_tracts_a1_int_bmap_geo)
 save(atl_tracts_a1_int_bmap_geo, file = "atl_tracts_a1_int_bmap_geo.RData")
 #save an aspatial version for speed in the bootstap
@@ -183,9 +184,91 @@ names(atl_tracts_a1_geo)
 
 setwd(here("data-processed"))
 save(atl_tracts_a1_geo, file = "atl_tracts_a1_geo.RData")
+atl_tracts_a1_geo %>% 
+  mapview(
+    col.regions = viridis_pal(option = "C"),
+    layer.name = "Proportion bike to work",
+    zcol = "t_to_w_bike_prop")
 
 #----------------------checks-------------------------------------------#
 # options(scipen = 100)
  # atl_tracts_a1_geo %>%  dplyr::select(contains("bike")) %>% View()
  # atl_tracts_a1_geo %>%  dplyr::select(contains("t_to_w")) %>% View()
 # atl_tracts_a1_geo %>%  dplyr::select(contains("race")) %>% View()
+
+
+#-------Nationwide for my video abstract---------
+#Updated May 16, 2022
+
+library(tidyverse)
+library(sf)
+library(mapview) #loads leeaflet.
+library(tidycensus)
+library(here)
+
+#-------Gather ACS data from 2015-2019 5-year ACS-----##############
+
+#note that they don't want us to compare 5-year ACS data year over year
+#https://www.census.gov/programs-surveys/acs/guidance/comparing-acs-data.html
+#using 2015-2019 5-year ACS because that roughly puts my years of interest in the middle of the period.
+#don't compare over time.
+vars_acs_2019 = load_variables(2019, "acs5", cache=TRUE)
+library(tidycensus)
+library(tidyverse)
+library(mapview)
+options(tigris_use_cache = TRUE)
+nationwide_bike_geo  = get_acs(
+  geography = "county", 
+  year=2019, #setting to 2019 as midpoint of study. otherwise, it will take the most recent.
+  cache_table = TRUE,
+#  state = "GA",
+#  county =  c("121", "097", "067", "089", "135", "151", "063", "113"), 
+  keep_geo_vars = FALSE, 
+  output = "wide",
+  survey = "acs5", 
+  geometry = TRUE, #takes a long time so just do this once
+  variables = c(
+
+    #   means of transportation to work (trans to w)
+    t_to_w_tot_ = "B08301_001",
+    t_to_w_car_ = "B08301_002",
+    t_to_w_public_ = "B08301_010",
+    t_to_w_bike_ = "B08301_018",
+    t_to_w_walk_ = "B08301_019",
+    t_to_w_other_ = "B08301_020"
+    
+  )
+)
+
+nationwide_bike_wrangle = nationwide_bike_geo %>% 
+  dplyr::rename_with( ~gsub("_E", "", .x, fixed = TRUE)) %>% 
+  mutate(
+  t_to_w_bike_prop = t_to_w_bike/t_to_w_tot,
+  t_to_w_bike_perc = t_to_w_bike_prop*100,
+  t_to_w_bike_perc_cat = case_when(
+    t_to_w_bike_perc<.1 ~ "<0.1%",
+    t_to_w_bike_perc>=.1 &
+      t_to_w_bike_perc < 0.5 ~ "0.1%-0.5%",
+    t_to_w_bike_perc>=.5 &
+      t_to_w_bike_perc < 1 ~ "0.5%-1%",
+    t_to_w_bike_perc>=1 &
+      t_to_w_bike_perc < 2 ~ "1%-2%",
+    t_to_w_bike_perc>=2 &
+      t_to_w_bike_perc < 3 ~ "2%-3%",
+    t_to_w_bike_perc>=3  ~ "3%"
+  )
+  )
+library(viridis)
+names(nationwide_bike_geo)
+nationwide_bike_wrangle %>% 
+  mapview(
+    col.regions = viridis_pal(option = "C"),
+    lwd =1,
+    layer.name = "Percent Commute by Bike",
+    zcol = "t_to_w_bike_perc_cat")
+
+
+#save to the analysis data folder rather than the other one to avoid having to change your working directory
+setwd(here("data-processed"))
+save(atl_tracts_acs5_20152019_geo, file = "atl_tracts_acs5_20152019_geo.RData")
+

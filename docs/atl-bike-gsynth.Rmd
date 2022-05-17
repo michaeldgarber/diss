@@ -151,6 +151,8 @@ Abbreviation definitions for treatment areas:
 
 -   **EST-EXT**: Atlanta BeltLine Eastside Trail Extension
 
+-   **PCT**: South Peachtree Creek Trail
+
 -   **MCD**: North McDonough St Protected Bike Lane
 
 -   **NT**: never treated
