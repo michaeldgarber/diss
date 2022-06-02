@@ -1,5 +1,5 @@
 ---
-title: "diss"
+title: "Dissertation-related posts"
 output:
   html_document:
     highlight: textmate
@@ -7,7 +7,7 @@ output:
       after_body: footer.html
 ---
 
-A placeholder index page for dissertation-related updates.
+A page for dissertation-related updates.
 So far, I have this dissertation-related post:
 
 https://michaeldgarber.github.io/diss/atl-bike-gsynth.html

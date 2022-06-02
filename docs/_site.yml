@@ -9,6 +9,8 @@ navbar:
       href: https://michaeldgarber.github.io/papers.html
     - text: "Posts"
       href: https://michaeldgarber.github.io/posts.html
+    - text: "Teaching"
+      href: https://michaeldgarber.github.io/teaching.html
     - text: "Projects"
       href: https://michaeldgarber.github.io/projects.html
       menu:
