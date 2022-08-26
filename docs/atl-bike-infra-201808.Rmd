@@ -1,0 +1,62 @@
+---
+title: "Bicycle infrastructure, Atlanta; August, 2018"
+author: "Michael D Garber"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+Bicycle infrastructure in Atlanta, specifically a 5.5-mile radius around Ponce de Leon Ave NE and Monroe Dr NE, as of August of 2018.
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(sf)
+library(here)
+library(mapview)
+library(RColorBrewer)
+#Note see diss/scripts/aim3-figures.R
+setwd(here("data-processed"))
+load("lookup_edge_mo_infra_nogeo.RData") #created in 2_wrangle_basemap
+load("lookup_bmap_edge_geo.RData") #geometry lookup
+load("lookup_infra_exclude_for_length_nogeo.RData") #exclude dupes, maybe
+load("mp_sf_5halfmi.RData")
+load("lookup_edge_osm_name.RData")
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+edge_mo_infra_study_mo_23_geo = lookup_edge_mo_infra_nogeo %>% 
+  filter(study_month ==23) %>% 
+  left_join(lookup_bmap_edge_geo, by = "edge_id") %>% 
+  left_join(lookup_infra_exclude_for_length_nogeo, by = "edge_id") %>% 
+  left_join(lookup_edge_osm_name, by = "edge_id") %>% 
+  st_sf() %>% 
+#  filter(ribbon_after_study==0) %>% #shouldn't be needed since we're specifying study month above
+  filter(infra_exclude_for_length==0) %>% #this is for the visualization but not the calculation
+  filter(infra_6cat_long_legend_nodirt !="none") %>% 
+#  filter(infra_6cat_long_legend_nodirt !="5-Sharrow") %>% 
+  st_intersection(mp_sf_5halfmi)  %>% 
+  dplyr::select(
+    #I might post this, so drop the radius name and the Monroe & Ponce intersection name
+    -starts_with("radius_name"),
+    -starts_with("geocoded_name")) 
+
+mv_mp_sf_5halfmi = mp_sf_5halfmi %>% 
+  mapview(
+    alpha.regions = 0, color = "grey40", col.regions = "grey40",
+        layer.name = "Study area")
+
+dark2_5 = RColorBrewer::brewer.pal(n=5, name = "Dark2")
+
+mv_infra_study_mo_23 = edge_mo_infra_study_mo_23_geo %>% 
+  #remove some extraneous vars I don't want included in an interactive map
+  dplyr::select(
+    -starts_with("infra_exclude")) %>% 
+  mapview(
+    zcol =  "infra_6cat_long_legend_nodirt",  
+    color = dark2_5,
+    layer.name = "Infrastructure" ,
+    lwd=4,
+    alpha=0.9
+  ) 
+
+mv_infra_study_mo_23+ mv_mp_sf_5halfmi
+```
+

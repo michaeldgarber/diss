@@ -100,30 +100,34 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
       TRUE ~ 8),
     
     #adding this 10/26/2020 - also including in table 1 results aim 3
+    #same: remove the word "road". see below.
     highway_6cat_ordered_with_trunk = case_when(
-      highway_9cat == "trunk road" ~ "0-trunk road",
-      highway_9cat == "primary road" ~ "1-primary road",
-      highway_9cat == "secondary road" ~ "2-secondary road",
-      highway_9cat == "tertiary road" ~ "3-tertiary road",
-      highway_9cat == "residential road" ~ "4-residential road",
+      highway_9cat == "trunk road" ~ "0-trunk",
+      highway_9cat == "primary road" ~ "1-primary",
+      highway_9cat == "secondary road" ~ "2-secondary",
+      highway_9cat == "tertiary road" ~ "3-tertiary",
+      highway_9cat == "residential road" ~ "4-residential",
       highway_9cat == "unclassified or service" ~ "5-unclassified or service",
       #I'm lumping living street in with unclassified
       highway_9cat == "living street" ~"5-unclassified or service"
     ),
     
     #another one for easier table making, where trunk is included in primary
+    #Update July 26, 2022: to make consistent with the intersection version created in 2_1_base...,
+    #remove "road" from the category name
     highway_5cat_ordered_collapse_trunk = case_when(
-      highway_9cat == "trunk road" ~ "1-trunk or primary road",
-      highway_9cat == "primary road" ~ "1-trunk or primary road",
-      highway_9cat == "secondary road" ~ "2-secondary road",
-      highway_9cat == "tertiary road" ~ "3-tertiary road",
-      highway_9cat == "residential road" ~ "4-residential road",
+      highway_9cat == "trunk road" ~ "1-trunk or primary", #i.e., it used to be 1-trunk or primary road
+      highway_9cat == "primary road" ~ "1-trunk or primary",
+      highway_9cat == "secondary road" ~ "2-secondary",
+      highway_9cat == "tertiary road" ~ "3-tertiary",
+      highway_9cat == "residential road" ~ "4-residential",
       highway_9cat == "unclassified or service" ~ "5-unclassified or service",
       #I'm lumping living street in with unclassified
       highway_9cat == "living street" ~"5-unclassified or service"
     ),
     
     #update 11/2/2020 - a category that collapsed primary w secondary and tertiary with residential
+    #for aim 3 stratified analysis
     highway_collapsed_2_2_ordered =
       case_when(
         highway_9cat == "trunk road" ~ "1-prim-sec",
@@ -131,15 +135,19 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
         highway_9cat == "secondary road" ~ "1-prim-sec",
         highway_9cat == "tertiary road" ~ "3-tert-res",
         highway_9cat == "residential road" ~ "3-tert-res",
-        TRUE ~ "5-other"
+        TRUE ~ "5-other" #weird that this is 5-..but whatevs.
       ),
     
-    #update 3/22/21 - in my aim3 figure1 code, I need hwy_6, and it's not there?
-    #so I'm going to define it here, even though I think it's defined elsewhere later on.
-    hwy_6 = highway_6cat_ordered_with_trunk,
-    hwy_5 = highway_5cat_ordered_collapse_trunk,
+   #comment July 26, 2022
+   #I had defined hwy_2, hwy_4, and hwy_6 here, but I'm going to reserve
+   #those variable names for a slightly distinct highway classification
+   #where I classify the roadway segment as its highway category but 
+   #any intersections with off-street paved trails as the most major crossing
+   #street.
+
     
-    #update 10/26/2020 - I'm including freedom parkway (the trunk road) as a part of primary through tertiary
+    #update 10/26/2020 - I'm including freedom parkway (the trunk road) as a 
+   #part of primary through tertiary. this major_or_res is used in aim 2, so keep
     major_or_res = case_when(
       highway_9cat == "trunk road" ~ 1,
       highway_6cat == "primary-tertiary road" ~ 1,
@@ -150,7 +158,7 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
     
     #these should also change since they depend on those above
     major_or_res_highway_6cat = case_when(
-      highway_9cat == "trunk road" ~ "primary-tertiary road", #(I'm still calling it primary-tertiary for posterity)
+      highway_9cat == "trunk road" ~ "primary-tertiary road", #(I'm still calling it primary-tertiary for a2 posterity)
       highway_6cat == "primary-tertiary road" ~ "primary-tertiary road",
       highway_6cat == "residential road"~ "residential road",
       TRUE ~ highway_6cat),
@@ -1058,7 +1066,7 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
       infra_6cat_none_abbrev == "trail_p" & 
         highway_6cat_ordered_with_trunk == "5-unclassified or service" ~ 1,
       infra_6cat_none_abbrev == "trail_p" & 
-        highway_6cat_ordered_with_trunk == " 0-trunk road " ~ 1,
+        highway_6cat_ordered_with_trunk == " 0-trunk" ~ 1,
       TRUE ~0),
     
     #bikeable or not (i.e., exclude interstates and trunk roads, e.g. freedom pkwy)
@@ -1199,6 +1207,7 @@ save(lookup_infra_trail_p_on_roadway, file = "lookup_infra_trail_p_on_roadway.RD
 bmap_osm_highway_both = bmap_osm_present %>% 
   bind_rows(bmap_osm_absent) %>% 
   mutate(lookup_name_number_indicator =1)
+
 
 
 ## combo-id - highway - lookup-----
@@ -1404,12 +1413,16 @@ save(lookup_bmap_edge_highway_nogeo, file = "lookup_bmap_edge_highway_nogeo.RDat
 
 ### look up OSM name--------------------------------------------
 lookup_edge_id_osm_id_name = bmap_edge_join_wrangle_pre_long_nogeo %>%
-  dplyr::select(edge_id,  osm_id_osm, osm_name_osm )
+  dplyr::select(edge_id,  osm_id_osm, osm_name_osm ) %>% 
+  as_tibble()
 save(lookup_edge_id_osm_id_name, file = "lookup_edge_id_osm_id_name.RData")
+
+
 
 #using this 12/12/21 below as a convenience lookup
 lookup_edge_osm_name =bmap_edge_join_wrangle_pre_long_nogeo %>% 
-  distinct(edge_id, osm_name_osm, osm_name_strava)
+  distinct(edge_id, osm_name_osm, osm_name_strava) %>% 
+  as_tibble()
 save(lookup_edge_osm_name, file = "lookup_edge_osm_name.RData")
 
 ### look up dissertation aim 1 variables----------
@@ -1620,7 +1633,13 @@ bmap_edge_mo_pre_f_nogeo =  lookup_bmap_edge_mo %>%
     infra_6_dummy_5_sharrow = case_when(   
       infra_6cat_long =="sharrow" ~ 1,
       TRUE ~ 0) ,
+    #I added the dirt category July 25, 2022 in case needed for aim 3
+    infra_6_dummy_6_trail_d = case_when(   
+      infra_6cat_long =="off_street_trail_dirt" ~ 1,
+      TRUE ~ 0) ,
+    
     #can omit the none category...not necessary
+    #do I use the dirt trail category?
     
     ###---length of infrastructure in each category-------------
     #the reason for this is so you can take a min and a max on a given
@@ -1728,7 +1747,7 @@ bmap_edge_mo_pre_f_nogeo =  lookup_bmap_edge_mo %>%
     
     #update 12/30/21 I'm adding a variable
   ) %>% 
-  #lastly, bring in the time-invariant variables again. shoudl be faster this way
+  #lastly, bring in the time-invariant variables again. should be faster this way
   left_join(lookup_bmap_edge_exclude_for_long, by = "edge_id")
 
 save(bmap_edge_mo_pre_f_nogeo, file = "bmap_edge_mo_pre_f_nogeo.RData")
@@ -1740,7 +1759,8 @@ save(bmap_edge_mo_pre_f_nogeo, file = "bmap_edge_mo_pre_f_nogeo.RData")
 #12/7/21 note this is used elsewhere so I'm not adding the nogeo suffix
 #Actually I am going to add the _nogeo suffix. If it breaks, fix it later.
 lookup_edge_mo_infra_nogeo = bmap_edge_mo_pre_f_nogeo %>% 
-  dplyr::select(edge_id, infra_6cat_long, infra_6cat_long_legend_nodirt, study_month)
+  dplyr::select(edge_id, infra_6cat_long, infra_6cat_long_legend_nodirt, study_month) %>% 
+  as_tibble()
 
 save(lookup_edge_mo_infra_nogeo, file = "lookup_edge_mo_infra_nogeo.RData")
 
@@ -1759,6 +1779,18 @@ lookup_edge_mo_infra_6_dummy_nogeo = lookup_edge_mo_infra_6_dummy_geo %>%
   st_set_geometry(NULL) %>% 
   as_tibble()
 save(lookup_edge_mo_infra_6_dummy_nogeo, file = "lookup_edge_mo_infra_6_dummy_nogeo.RData")
+
+### lookup infra edge - last study month----------
+#A static look-up table to check what edges ever have infra. Use 23
+lookup_edge_infra_study_mo_23 = lookup_edge_mo_infra_nogeo %>% 
+  filter(study_month==23) %>% 
+  distinct(edge_id, infra_6cat_long) %>% 
+  as_tibble()
+
+setwd(here("data-processed"))
+lookup_edge_infra_study_mo_23
+save(lookup_edge_infra_study_mo_23, file = "lookup_edge_infra_study_mo_23.RData")
+
 
 ### lookup with infra and ribbon date and exclude for length-----------
 lookup_edge_mo_infra_ribbon_exclude_geo = bmap_edge_mo_pre_f_nogeo %>% 
@@ -1794,11 +1826,17 @@ lookup_infra_abbrev_ordered = bmap_edge_mo_pre_f_nogeo %>%
   
   dplyr::select(infra_most_protection_ordered, infra_6cat_long, infra_ordered) %>% 
   distinct(infra_most_protection_ordered, infra_6cat_long, infra_ordered) %>% 
-  arrange(infra_most_protection_ordered)
+  arrange(infra_most_protection_ordered) %>% 
+  as_tibble()
 setwd(here("data-processed"))
 save(lookup_infra_abbrev_ordered, file = "lookup_infra_abbrev_ordered.RData")
 
+lookup_infra_ordered = lookup_infra_abbrev_ordered %>% 
+  distinct(infra_6cat_long, infra_ordered) %>% 
+  as_tibble() %>% 
+  arrange(infra_ordered)
 
+save(lookup_infra_ordered, file = "lookup_infra_ordered.RData")
 ### lookup for table 1 of infra ------
 lookup_infra_table_order  = bmap_edge_mo_pre_f_nogeo %>% 
   group_by(infra_6cat_long) %>% 
@@ -2197,7 +2235,7 @@ lookup_edge_id_import_vars_but_length = bmap_edge_join_wrangle_nogeo %>%
     beltline,
     starts_with("ribbon"), #important to save this down here because ribbon dates will be better.
     starts_with("highway"), #this grabs highway_1
-    starts_with("hwy"), #hopefully this doesn't mess anything up
+    starts_with("hwy"), #7/25/22 - should pick up none.
     starts_with("major_or_res")  #in case there are any descendents
     #    maxspeed ,
     
