@@ -43,7 +43,15 @@ mv_mp_sf_5halfmi = mp_sf_5halfmi %>%
     alpha.regions = 0, color = "grey40", col.regions = "grey40",
         layer.name = "Study area")
 
-dark2_5 = RColorBrewer::brewer.pal(n=5, name = "Dark2")
+#Create the custom color palette as we did in aim3-figures.
+library(RColorBrewer)
+infra_custom_pal = c(
+  "black",
+  brewer.pal(n=3, "Greens")[3],
+  brewer.pal(n=3, "Blues")[3],
+  brewer.pal(n=3, "Oranges")[3],
+  brewer.pal(n=3, "Purples")[3]
+)
 
 mv_infra_study_mo_23 = edge_mo_infra_study_mo_23_geo %>% 
   #remove some extraneous vars I don't want included in an interactive map
@@ -51,7 +59,7 @@ mv_infra_study_mo_23 = edge_mo_infra_study_mo_23_geo %>%
     -starts_with("infra_exclude")) %>% 
   mapview(
     zcol =  "infra_6cat_long_legend_nodirt",  
-    color = dark2_5,
+    color = infra_custom_pal,
     layer.name = "Infrastructure" ,
     lwd=4,
     alpha=0.9
