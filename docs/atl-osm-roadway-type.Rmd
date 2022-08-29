@@ -5,7 +5,7 @@ date: "`r Sys.Date()`"
 output: html_document
 ---
 
-Roadway type of roads in Atlanta within a 5.5-mile radius around Ponce de Leon Ave NE and Monroe Dr NE. This excludes interstate highways, service roads, unclassified roads.
+Roadway type of roads in Atlanta within a 5.5-mile radius around Ponce de Leon Ave NE and Monroe Dr NE. This excludes interstate highways, service roads, and unclassified roads.
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 library(tidyverse)
 library(sf)
@@ -26,6 +26,9 @@ mv_highway_6cat_ordered_with_trunk = bmap_hwy_for_mapview_aim3 %>%
     lwd=2, 
     alpha=0.7)  
 
-mv_highway_6cat_ordered_with_trunk
+library(leaflet)
+library(leaflet.extras)
+mv_highway_6cat_ordered_with_trunk@map %>% 
+  leaflet.extras::addFullscreenControl()
 ```
 
