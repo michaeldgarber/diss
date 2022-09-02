@@ -1,9 +1,11 @@
-#---Wrangle OSM data to prep for Aim 3--------#
+# Wrangle OSM data to prep for Aim 3
+
+#filename: 1_wrangle_osm
 #Revised 9/28/2020
 # Revised 12/4/21 for aim 1
-#filename: 1_wrangle_osm
+# Here 9/2/22 to clean up headings
 
-#------------Load from here per 9/26/2020 work--------#############
+# Load from here per 9/26/2020 work-------- 
 library(tidyverse)
 library(lubridate)
 library(sf)
@@ -24,7 +26,7 @@ load(file = "all_highway_dupes_rid.RData")
 
 
 names(all_highway_dupes_rid)
-#----create all_h_osm_wrangle_geo------##########
+# create all_h_osm_wrangle_geo---------------
 all_h_osm_wrangle_geo = all_highway_dupes_rid %>% 
   #create a numeric OSM field. the 'osm' subscript is useful to indicate that the id comes from
   #'osm' directly (I pulled it directly) rather than the corresponding field that Strava pulled (osm_id_strava)
@@ -38,9 +40,10 @@ all_h_osm_wrangle_geo = all_highway_dupes_rid %>%
   dplyr::select(-osm_id, -name) %>% 
   
 #  table(all_h_osm_wrangle_both_geo$highway)
-  #------highway classification and major vs residential-------#########
-  #--For posterity, I'm keeping this highway classification, as it's used throughout
-  #---subsequent code ... but it could be more precise and improved....9/24/2020 MDG--#
+  ## highway classification, incl. major vs. residential----------
+  # For posterity, I'm keeping this highway classification, as it's used throughout
+  # subsequent code ... but it could be more precise and improved,
+  # as I do in the 2_wrangle_basemap code
   mutate( 
     highway_original = highway , #keep the original version around in case you need it.
     
@@ -143,8 +146,6 @@ all_h_osm_wrangle_geo = all_highway_dupes_rid %>%
     ,
     
     #the aim 2 major or res variable. Make it here instead per 10/5/2020. 
-    #It's a basemap-based variable, so 
-    #it should be created in the basemap
     major_or_res = case_when(
       highway_6cat == "primary-tertiary road" ~ 1,
       highway_6cat == "residential road" ~ 0),
@@ -189,15 +190,16 @@ all_h_osm_wrangle_geo = all_highway_dupes_rid %>%
       grepl("belt line", osm_name_osm) ~ 1,
       TRUE ~ 0 ),
   
-  #---------2017 Atlanta Report and Dissertation Aim 1 infrastructure----------------------####
-  #-----------Westside trail-------------------------------------------------------------------#
+  ## 2017 Atlanta Report and Dissertation Aim 1 infrastructure----------------------------
+  ### Westside trail-------------------------------------------------------------------
   #except for the little dirt part, but this happens to work (see 'Westside Interim' below)
   #12/7/21 this actually works to exclude the unpaved part.
   project_westside_trail_paved = case_when(
     grepl("Atlanta BeltLine Westside Trail", osm_name_osm) ~ 1
   ),
   
-  #12/7/21 note you can be more specific here, actually, to differentiate the paved from the unpaved
+  #12/7/21 note you can be more specific here ("dirt"), 
+  #actually, to differentiate the paved from the unpaved
   project_westside_trail_dirt_interim = case_when(
     osm_id_osm == 669818486 ~ 1,
     TRUE ~ 0),
@@ -205,7 +207,7 @@ all_h_osm_wrangle_geo = all_highway_dupes_rid %>%
     # grepl("Westside Interim", osm_name_osm)==TRUE ~ 1,
     # TRUE ~ 0),
 
-  #-----------Tech Parkway and Luckie St -----------------------------------------------------#
+  ### Tech Parkway and Luckie St -----------------------------------------------------
   #Tech Parkway
   #Note, the search-term-based way would work, using osm_name_osm contains PATH Parkway
   #but to be more specific, I'm doing it this way
@@ -231,11 +233,13 @@ all_h_osm_wrangle_geo = all_highway_dupes_rid %>%
     project_tech_parkway==1 ~ 1,
     project_luckie_st_lane_protected==1 ~ 1 )  ,
   
-  #-----------eastside trail extension --------------------------------------------------------------------------------#
+  ### Eastside trail extension -------------------------------------------------
   #there is a duplicate just south of irwin st to edgewood
   # one stops at edgewood - 7764043743 - maybe get rid of this.
-  #but don't get rid of it until you link with Strava because there may have been some ridership that was snapped to it.
-  #and then there is this with goes under the bridge - 722838793 - seems more legit, but doesn't stop at edgewood
+  #but don't get rid of it until you link with Strava because there may have been some 
+  #ridership that was snapped to it.
+  #and then there is this with goes under the bridge - 722838793 - seems more legit, 
+  #but doesn't stop at edgewood
   
   #pasting in some of your other code for reference
   # NAME == "D_EastsideTrail_WylieExtension" ~ "est1", #this one opened first. numbering by date.
@@ -294,7 +298,7 @@ all_h_osm_wrangle_geo = all_highway_dupes_rid %>%
     project_eastside_trail_paved==1 ~ 1
     ),
   
-  #----South Peachtree Creek extension---------------------------------------------------------#
+  ### South Peachtree Creek extension---------------------------------------------------
   #the new segments going towards n druid hills
   # 740764236 740764229 740764228 740764237 740764227
   
@@ -318,10 +322,10 @@ all_h_osm_wrangle_geo = all_highway_dupes_rid %>%
     ),
   project_s_peachtree_creek_bridge_under_clairmont = case_when(osm_id_osm == 606130774 ~ 1),
   
-  #----McDonough St Protected Bike Lane ---------------------------------------------------------#
+  ### McDonough St Protected Bike Lane ---------------------------------------------------
   project_n_mcdonough_st_lane_protected = case_when(osm_id_osm == 84395983 ~ 1),
   
-  #---RDA buffered lane (Dec 2018) ------------------------------############
+  ### RDA buffered lane (Dec 2018) ------------------------------
   #"RDA Buffered Bike Lane" ~ lubridate::ymd(20171201),#rough guess in december 1, 2017
   #okay, we need Ralph David Abernathy Buffered Bike Lane - Cascade to MLK
   # 112561983 629305886 146842406 629305885 181272963
@@ -354,7 +358,7 @@ all_h_osm_wrangle_geo = all_highway_dupes_rid %>%
     TRUE ~0
   ),
 
-  #---2018 Atlanta report---------------------------------------------------####
+  ## 2018 Atlanta report-----------------------------------------------------------
   #https://www.atlantaga.gov/home/showdocument?id=40599
   #Useful to group them as an indicator so you can apply date easier
   #(Beginning them with a project prefix so they'll be easier to grab in dplyr::select)
@@ -439,7 +443,7 @@ all_h_osm_wrangle_geo = all_highway_dupes_rid %>%
       osm_id_osm == 111663207 ~1 ),
   
   
-  #-----------PATH 400------------------------#
+  ## PATH 400-----------------------------
   #10/11/2020 to-do: this includes proposed. don't worry for now
   #12/4/21 making this more specific
     #hmm, so the osm_id_osm isn't granula renough to differntiate
@@ -453,7 +457,7 @@ all_h_osm_wrangle_geo = all_highway_dupes_rid %>%
     grepl("PATH400", osm_name_osm) ~ 1 
   ),
   
-  #--------Dirt trails (projects and groups)---------------------------##########
+  ## Dirt trails (projects and groups)-------------------------------------
   #Ira B and Mason Mill Trails across Clairmont
   #Ira B and Mason Mill Trails
   project_ira_b_mason_mill = case_when( 
@@ -644,9 +648,11 @@ all_h_osm_wrangle_geo = all_highway_dupes_rid %>%
         grepl("Fernbank El", osm_name_osm) ~ 1 #Fernbank elementary trails
     ),
   
-  #---MDG here is where the manual work is! early October 2020-----########
-  #---------Pre-existing infrastructure------------------------------######
-  #My process here is to review PDFs and my older infrsatructure file to see what was already there
+  ## Additional manual work October 2020--------------
+  # MDG here is where the manual work is! early October 2020-----#
+  
+  ### Pre-existing infrastructure (aim 1)------------------------------------------
+  #My process here is to review PDFs and my older infrastructure file to see what was already there
   #to make sure it matches what the cities (Atlanta and Decatur) have
   
   #Begin with buffered bike lanes
@@ -660,7 +666,7 @@ all_h_osm_wrangle_geo = all_highway_dupes_rid %>%
   #   
   # ),
   
-  #----classify off-street trail -  paved--------#######
+  ### classify off-street trail -  paved-----------------------
   #update 1/3/22 note these are fixed further down in 2_wrangle_basemap to be dichotomous (1,0)
     infra_off_street_trail_paved = case_when(
       project_path_400 == 1 ~ 1,
@@ -706,8 +712,8 @@ all_h_osm_wrangle_geo = all_highway_dupes_rid %>%
       highway == "footway" & surface == "paved" ~ 1
     ),
     
-  #----classify off-street trail  - dirt--------#######
-  #General note - as you classify this, you may want to say it's NOT the preceding one--#########
+  ### classify off-street trail  - dirt------------------
+  # General note - as you classify this, you may want to say it's NOT the preceding one--#
     infra_off_street_trail_dirt = case_when(
       grepl("Interim BeltLine Eastside Trail", osm_name_osm) ~ 1,
       grepl("Atlanta BeltLine Southside Trail", osm_name_osm) ~ 1,
@@ -750,7 +756,7 @@ all_h_osm_wrangle_geo = all_highway_dupes_rid %>%
       
     ),
     
-    #----classify bike lane - protected--------#######
+    ### classify bike lane - protected---------------------
     infra_bike_lane_protected = 
       case_when(
         grepl("Portman PATH", osm_name_osm) ~ 1,
@@ -761,14 +767,14 @@ all_h_osm_wrangle_geo = all_highway_dupes_rid %>%
         # cycleway == "track" ~ 1, #not universally true so don't use this criterion
       ) ,
     
-    #----classify bike lane - buffered--------#######
+    ### classify bike lane - buffered-------------------
   #12/17/21 this is too generous. much of this rda lane is actually not buffered.
     infra_bike_lane_buffered =  case_when(
       project_ormewood_bike_lane_buff == 1  ~ 1,
       project_rda_cascade_mlk_bike_lane_buff==1 ~ 1
     ),
     
-  #----classify bike lane - conventional--------#######
+  ### classify bike lane - conventional--------------------------------
   #12/19/21 what about eagle row? confirmed it's there. you're good. proceed.
     infra_bike_lane_conventional =  case_when(
       #hard code some
@@ -782,7 +788,7 @@ all_h_osm_wrangle_geo = all_highway_dupes_rid %>%
       cycleway.right=="lane" ~ 1  #double check this condition
     ),
     
-  #----classify bike lane - sharrow--------#######
+  ### classify bike lane - sharrow-----------------------
     infra_sharrow =  case_when(
       project_ormewood_sharrow == 1 ~ 1,
       
@@ -804,7 +810,7 @@ all_h_osm_wrangle_geo = all_highway_dupes_rid %>%
     ),
   
   
-  #-------crosswalks (footway==crossing)---------######
+  ### crosswalks (footway==crossing)-------------------
   #These appear to be classified correctly, broadly. I'd like to exclude them
   #or at least mark them
   footway_crossing = case_when(
@@ -813,7 +819,7 @@ all_h_osm_wrangle_geo = all_highway_dupes_rid %>%
     footway == "crossing" ~1,
     TRUE ~ 0),
    
-  #---------classify 6-category infra variable----------########
+  ## classify 6-category infra variable--------------------------------
   #Update 10/9/2020 I'm calling this pre merge because below
   #I merge everything that qualifies as "none" with my previously created dataset with infrastructure from 2016
   #so that it then runs through the subsequent code, I'm going to call the final one infra_6cat
@@ -832,7 +838,7 @@ all_h_osm_wrangle_geo = all_highway_dupes_rid %>%
     TRUE ~ 0
   ),
   
-    #--dissertation infrastructure aim 1 indicator variable------######
+  ## dissertation infrastructure aim 1 indicator variable--------------------
   #a dissertation aim 1 indicator
   diss_a1_any = case_when(
     #note that the westsidetrail paved indicator includes the segment near the old
@@ -860,7 +866,7 @@ all_h_osm_wrangle_geo = all_highway_dupes_rid %>%
     TRUE ~ 0
       ),
   
-  #----alternate definitions of your dissertation aim 1 grouped infra---########
+  ### alternate definitions of your dissertation aim 1 grouped infra------------
   diss_a1_wst = case_when(
     project_westside_trail_paved    ==  1 ~1,
     TRUE ~0),
@@ -965,7 +971,7 @@ all_h_osm_wrangle_geo = all_highway_dupes_rid %>%
   
 
 
-  #-----date variables--------#########
+  ## date variables-----------------------
   #Note, in my 1_diss_infra code, I use the term ribbon to indicate opening,
   #so do that here, too, for internal consistency
         #yr_ribbon in that code. Here, I'd prefer ribbon_year
@@ -1137,7 +1143,7 @@ all_h_osm_wrangle_geo = all_highway_dupes_rid %>%
     #exclude the crossings
     filter(footway_crossing == 0) %>% 
 
-    #------------organize and keep variables------#######
+    ## organize and keep variables-------------------------
     dplyr::select(
       starts_with("osm_"), #this gets the IDs, the names, the indicator, 
       name_1, #fine, I'll keep.
@@ -1199,7 +1205,7 @@ all_h_osm_wrangle_geo = all_highway_dupes_rid %>%
                 -length #this isi the original length field imported from OSM. get rid of it.
                 ) 
 
-#--------save-----------#########
+## save---------------------------------
 setwd(here("data-processed"))
 save(all_h_osm_wrangle_geo, file = "all_h_osm_wrangle_geo.RData")
 #a version without geometry
@@ -1214,13 +1220,13 @@ lookup_osm_wrangle_geo = all_h_osm_wrangle_geo %>%
 save(lookup_osm_wrangle_geo, file = "lookup_osm_wrangle_geo.RData")
 
 
-#------2.1. Create a dataset of infra that WAS NOT classified above in the OSM-specific coding--- ####
+# Create a dataset of infra that WAS NOT classified above in the OSM-specific coding------------
 all_h_osm_noinfra = all_h_osm_wrangle_geo %>% 
   filter(infra_pre_merge_none==1)
 save(all_h_osm_noinfra, file = "all_h_osm_noinfra.RData")
 
 
-#----------some exploring---######
+# some exploring------------
 #confirm your ribbon date...
 table(all_h_osm_wrangle_nogeo$ribbon_study_month)
 #the ones I explored now appear in the classification above. looking at various combinations
@@ -1246,7 +1252,7 @@ set1_6 = RColorBrewer::brewer.pal(n=6, name = "Set1")
 #   )
 
 
-#-----------2. Gather infrastructure that was previously classified by ARC or City of  Atlanta---####
+# Gather infrastructure that was previously classified by ARC or City of  Atlanta-------------
 # link in the infra with the work you did in 2016.
 #See the end of this code: 1_1_Import_manage_bike_layers_data_20201009
 
@@ -1262,14 +1268,12 @@ setwd(here("data-processed"))
 set2_6 = RColorBrewer::brewer.pal(n=6, name = "Set2")
 set2_5 = RColorBrewer::brewer.pal(n=5, name = "Set2")
 set1_6 = RColorBrewer::brewer.pal(n=6, name = "Set1")
-options(viewer = NULL) #send viewer to the browser
-options(browser = "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe")
 
 #above, I used a 20-foot buffer, so try that here, too. 
 #Filter to where the main OSM file is infra_6cat_pre_merge = none, and then st_intersection() it
 #against the buffered version of bike_inf_5
 
-#-----2.2. Create a buffer around your previous (circa 2016) infrastructure----####
+## Create a buffer around your previous (circa 2016) infrastructure---------------------------
 # ----COMMENT OUT 12/4/21 This spatial intersection step takes forever. Comment out------##############
 # names(bike_inf_5_i285_4326)
 # bike_inf_5_i285_4326_buff = bike_inf_5_i285_4326 %>% 
@@ -1419,7 +1423,7 @@ options(browser = "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe")
 # summary(all_h_coa_arc_int_pick_one$length_chopped_m)
 
 
-#--------2.3. link that back with the main one that DID not have any infra classified by OSM----######
+## Link that back with the main one that DID not have any infra classified by OSM------------------
 #load it again so that it can be deleted above.
 setwd(here("data-processed"))
 load(file = "all_h_osm_noinfra.RData")
@@ -1486,7 +1490,7 @@ nrow(all_h_osm_anyinfra)
 nrow(all_h_osm_noinfra)
 nrow(all_h_osm_anyinfra) + nrow(all_h_osm_noinfra) #check that they add up
 
-#-and bind rows them together
+## and bind rows them together-----------
 table(all_h_infra_join_coa_arc$infra_6cat_none)
 table(all_h_osm_anyinfra$infra_6cat_none)
 #call it both because it includes data from both OSM and from ARC/COA
@@ -1566,14 +1570,14 @@ all_h_osm_wrangle_both_geo = all_h_infra_join_coa_arc %>%
   ) 
 
 
-#----save-----#######
+# save----------------
 save(all_h_osm_wrangle_both_geo, file = "all_h_osm_wrangle_both_geo.RData")
 all_h_osm_wrangle_both_nogeo = all_h_osm_wrangle_both_geo %>%  
   st_set_geometry(NULL) %>% 
   as_tibble()
 save(all_h_osm_wrangle_both_nogeo, file = "all_h_osm_wrangle_both_nogeo.RData")
 
-#----done!--------########
+# done!----------------------
 #check it
 table(all_h_osm_wrangle_both_nogeo$infra_6cat_none)
 table(all_h_osm_wrangle_both_nogeo$infra_6cat_none_abbrev)
@@ -1605,7 +1609,7 @@ names(all_h_osm_wrangle_both_geo)
 
 
 
-#-------Make a version with a small buffer around it for easier spatial merging-------######
+# Make a version with a small buffer around it for easier spatial merging------------------
 load(file = "all_h_osm_wrangle_both_geo.RData")
 library(tidyverse)
 library(sf)
@@ -1619,7 +1623,7 @@ setwd(here("data-processed"))
 save(all_h_osm_wrangle_buff_20ft_geo, file = "all_h_osm_wrangle_buff_20ft_geo.RData")
 
 
-#----look-up tables---------######
+# look-up tables--------------------
 names(all_h_osm_wrangle_both_nogeo)
 
 lookup_all_h_osm_wrangle_buff_20ft_geo = all_h_osm_wrangle_buff_20ft_geo %>% 
@@ -1644,10 +1648,9 @@ names(all_h_osm_wrangle_both_nogeo)
 lookup_osm_indicator = all_h_osm_wrangle_both_nogeo %>% 
   dplyr::select(osm_id_osm, osm_indicator)
 save(lookup_osm_indicator, file = "lookup_osm_indicator.RData")
-#----clean up the workspace for when you source it-----####
 
-# 
-# #-------------checks and visualizations---------------------------#####
+
+# checks and visualizations----------------------------------------
 #is osm_id unique?
 n_distinct(all_h_osm_wrangle_buff_20ft_geo$osm_id_osm)
 nrow(all_h_osm_wrangle_buff_20ft_geo) #yes, apparently it is.
