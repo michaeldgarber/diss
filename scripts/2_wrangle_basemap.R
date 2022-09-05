@@ -284,6 +284,29 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
     project_east_lake_park_place_conventional = case_when(
       edge_id %in% c(243018, 257082, 768437, 243018, 1127928) ~ 1),
    
+   ### Piedmont Park work-------
+   #Here September 2, 2022. Some trails in Piedmont Park have not been
+   #classified yet, somehow.
+   #this is the beltline extension through piedmont, dirt for the duration
+   #of this study
+   project_piedmont_park_dirt = case_when(
+     edge_id %in% c(
+       827843, 828156, #eastside trail gravel north of monroe
+       860884, 860878, 828406, 763720 #active oval
+       ) ~1),
+   
+   project_piedmont_park_paved = case_when(
+     edge_id %in% c(
+       805104, 763707,
+       805086, 805087, 805085,805091, 763708,763715,783179, 
+       805097,783174,763706,763711,763719,763716,783172,763703,
+       828170,828409,
+       805089,
+       828172
+       )~1),
+
+   
+   
    ### re-create infra_6cat var-----------
   
     infra_6cat = case_when(
@@ -300,6 +323,10 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
       project_rda_bike_lane_buff_2018mar==1 ~"bike_lane_buffered",
       project_rda_cascade_mlk_bike_lane_buff==1 ~ "bike_lane_buffered",
       project_rda_cascade_mlk_bike_lane_conv==1 ~ "bike_lane_conventional",
+      
+      #Piedmont Park stuff
+      project_piedmont_park_dirt == 1 ~ "off_street_trail_dirt",
+      project_piedmont_park_paved == 1 ~ "off_street_trail_paved",
 
       #use the %in% coding. it will be faster.
       
@@ -1129,6 +1156,14 @@ table(bmap_edge_join_wrangle0$nobikes) #yep
 names(bmap_edge_join_wrangle0)
 #update 6/2/21 how many are missing ribbon. and if they're missing ribbon, they may not get processed later...
 
+## check on Piedmont Park. It seems I'm not picking up some paths:
+load("monpon_sf_1mi.RData")
+load("monpon_sf_2mi.RData")
+mv_piedmont_park_check = bmap_edge_join_wrangle0 %>% 
+  dplyr::select(edge_id, starts_with("infra") ) %>% 
+  st_intersection(monpon_sf_2mi) %>% 
+  mapview(zcol = "infra_6cat")
+mv_piedmont_park_check
 
 #table(bmap_edge_join_wrangle0$infra_6cat_none_abbrev)
 table(bmap_edge_join_wrangle0$project_path_400_after_a1) #got it.
@@ -1136,10 +1171,34 @@ table(bmap_edge_join_wrangle0$project_path_400_old_ivy_to_wieuca)
 table(bmap_edge_join_wrangle0$project_path_400_sidney_marcus_to_miami_cir)
 table(bmap_edge_join_wrangle0$project_path_400)
 
+#September 2022:
+### check on highway category------------
+#as I'm considering including unclassified / service in aim 3 analysis
+table(bmap_edge_join_wrangle0$highway_9cat)
+bmap_edge_join_wrangle0 %>% 
+  filter(highway_9cat=="unclassified or service") %>% 
+  mapview()
+
+table(bmap_edge_join_wrangle0$highway)
+#what's the difference between unclassified and service?
+mv_service = bmap_edge_join_wrangle0 %>% 
+  filter(highway =="service") %>% 
+  mapview(layer.name = "service", color = "red")
+mv_unclassified = bmap_edge_join_wrangle0 %>% 
+  filter(highway =="unclassified") %>% 
+  mapview(layer.name = "unclassified", color = "green")
+mv_service+mv_unclassified
+#9/2/22 okay, so there's a lot of driveways and other weird stuff. hmm.
+#note there is a service designation for lots of the driveways.
 
 #update 10/26/2020 - there are no duplicate edge ids. so remove this superfluous code
 #distinct_edge = bmap_edge_join_wrangle0 %>% distinct(edge_id)
 
+#curious about some of the paved-trail intersections
+table(bmap_edge_join_wrangle0$infra_6cat)
+# bmap_edge_join_wrangle0e %>% 
+#   filter(infra_6cat == "off_street_trail_paved") %>% 
+#   mapview()
 # First set of look-ups----------------
 ## a row number for each osm name-highway combination--------
 
@@ -1465,7 +1524,8 @@ save(lookup_edge_project, file = "lookup_edge_project.RData")
 
 # a unary union of the basemap---
 
-#12/5/21 note you really don't need to repeat this unless you change the map itself (which you won't)
+#12/5/21 note you really don't need to repeat this unless you 
+#change the extent of the map itself (which you won't)
 #so comment it out.
 # library(tidyverse)
 # library(sf)
@@ -1581,7 +1641,8 @@ bmap_edge_mo_pre_f_nogeo =  lookup_bmap_edge_mo %>%
       ### Second, if it's not these, then set it as none---------
       study_month < ribbon_study_month ~ "none", 
       
-      ### Third, set it to the infrastructure category if the study month is AFTER the ribbon date--------
+      ### Third, set it to the infrastructure category if the 
+      #tudy month is AFTER the ribbon date
       study_month >=  ribbon_study_month ~ infra_6cat_none,
       
       #if the ribbon study month is after 24, that means it's after our study ended, so that should also be ended
@@ -2046,6 +2107,7 @@ names(edge_infra_change_a1_nogeo)
 # load("edge_infra_change_a1_nogeo.RData")
 
 
+
 # FINAL FINAL BMAP_EDGE_JOIN_WRANGLE-----------------------------------------------
 #12/12/21 we're now considering some indicators that summarize time-varying stuff
 #from above
@@ -2170,6 +2232,7 @@ table(bmap_edge_join_wrangle$diss_a1_eval)
 #   filter(diss_a1_rda_cas==1) %>%
 #   filter(infra_exclude_for_length==0) %>% 
 #   mapview(zcol = "infra_6cat")
+
 
 
 
@@ -2385,6 +2448,23 @@ save(bmap_edge_mo_nogeo, file = "bmap_edge_mo_nogeo.RData")
 # expo_line_eval
 #expo_line_poss_conf
 # expo_line_any
+
+## checks---------
+# There are a couple key beltline things I need to check for my aim 3.
+#They should change from dirt to paved or none to paved
+327174 #westside trail
+1423722 #eastside trail extension
+bmap_edge_join_wrangle$infra
+names(bmap_edge_join_wrangle_nogeo)
+bmap_edge_mo_nogeo %>% 
+  filter(edge_id == "327174") %>% 
+  dplyr::select(edge_id, starts_with("study_mo"), infra_6cat_long) %>% 
+  print(n=25) #yes!
+
+bmap_edge_mo_nogeo %>% 
+  filter(edge_id == "1423722") %>% 
+  dplyr::select(edge_id, starts_with("study_mo"), infra_6cat_long) %>% 
+  print(n=25) #yes!
 
 
 ## look up dissertation variables by month-----------------
