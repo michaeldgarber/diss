@@ -1,0 +1,50 @@
+---
+title: "Intersections considered in study"
+author: "Michael D Garber"
+date: "`r Sys.Date()`"
+output:
+  html_document
+---
+
+# Map of intersections
+
+Intersections classified by the most major roadway type present
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(sf)
+library(here)
+library(mapview)
+library(RColorBrewer)
+library(leaflet)
+library(leaflet.extras) #for popping out full screen
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+setwd(here("data-processed"))
+load("inters_final.RData")
+#This is mostly copied from:
+#~scripts/2_1_basemap_generate_intersections.R
+sf::sf_use_s2(FALSE)
+inters_most_major_hwy_grouped=inters_final %>% 
+  #much easier to see if you do:
+  st_centroid() %>% 
+  group_by(intersects_highway_most_major_6cat_ordered_with_trunk) %>% 
+  summarise(n=n())
+
+library(RColorBrewer)
+set2_5 = RColorBrewer::brewer.pal(n=5, name = "Set2")
+mv_inters_most_major_hwy_grouped =inters_most_major_hwy_grouped %>% 
+  mapview(
+#    cex=1,
+    col.regions = set2_5,
+#    color=set2_5,
+    layer.name = "Most major roadway type at intersection",
+    zcol = "intersects_highway_most_major_6cat_ordered_with_trunk")
+
+
+#so that it can be popped out full screen
+mv_inters_most_major_hwy_grouped@map %>% 
+  leaflet.extras::addFullscreenControl()
+```
+
