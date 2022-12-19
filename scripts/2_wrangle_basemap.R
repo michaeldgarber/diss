@@ -18,8 +18,10 @@ load("bmap_edge_join_geo.RData" )
 load("lookup_edge_id_osm_id_osm.RData")
 load("all_h_osm_wrangle_both_nogeo.RData")
 load("lookup_edge_id_xy_coord.RData")
-names(bmap_edge_join_geo) #note that this hasn't actually been run since june 2021; it takes a while
-#[1] "edge_id"         "osm_id_osm"      "osm_id_strava"   "osm_name_strava" "join_aspatial"   "join_spatial"   
+names(bmap_edge_join_geo) #note that this hasn't actually been run since june 2021; 
+#it takes a while
+#[1] "edge_id"         "osm_id_osm"      "osm_id_strava"   "osm_name_strava" 
+#"join_aspatial"   "join_spatial"   
 #"osm_indicator"   "geometry" 
 
 nrow(bmap_edge_join_geo)
@@ -144,6 +146,13 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
    #where I classify the roadway segment as its highway category but 
    #any intersections with off-street paved trails as the most major crossing
    #street.
+   
+   #Comment Dec 15, 2022: I'm bringing these back here. It's okay
+   #that they do have slightly different definitions at the intersection level.
+   #I'd rather have it here so that all downstream data has these:
+   hwy_6 = highway_6cat_ordered_with_trunk,
+   hwy_5 = highway_5cat_ordered_collapse_trunk,
+   hwy_2 = highway_collapsed_2_2_ordered,
 
     
     #update 10/26/2020 - I'm including freedom parkway (the trunk road) as a 
@@ -1352,6 +1361,8 @@ n_groups = n_distinct(bmap_edge_join_group_miss_no$osm_name_highway_combo_id)
 n_edges = n_distinct(bmap_edge_join_group_miss_no$edge_id)
 edge_per_group = as.integer(n_edges/n_groups) %>%  as_tibble() %>% pull()
 
+
+
 #so how many groups total among those that are missing?
 bmap_edge_join_group_miss_yes = bmap_edge_join_wrangle1 %>% 
   filter(osm_name_highway_combo_id_miss==1) %>%
@@ -1383,7 +1394,18 @@ bmap_edge_join_wrangle_pre_long_geo = bmap_edge_join_group_miss_yes %>%
 
 table(bmap_edge_join_wrangle_pre_long_geo$group_id)
 
+
 save(bmap_edge_join_wrangle_pre_long_geo, file = "bmap_edge_join_wrangle_pre_long_geo.RData")
+
+#Can I visualize groups?
+load("bmap_edge_join_wrangle_pre_long_geo.RData")
+library(mapview)
+bmap_edge_join_wrangle_pre_long_geo %>%
+  arrange(group_id) %>%
+  slice(1:3000) %>%
+  mapview(
+    zcol = "group_id")
+
 bmap_edge_join_wrangle_pre_long_nogeo = bmap_edge_join_wrangle_pre_long_geo %>% 
   st_set_geometry(NULL) %>% 
   as_tibble()
@@ -1645,7 +1667,8 @@ bmap_edge_mo_pre_f_nogeo =  lookup_bmap_edge_mo %>%
       #tudy month is AFTER the ribbon date
       study_month >=  ribbon_study_month ~ infra_6cat_none,
       
-      #if the ribbon study month is after 24, that means it's after our study ended, so that should also be ended
+      #if the ribbon study month is after 24, that means it's after our study ended, so that should 
+      #also be ended
       ribbon_study_month > 24 ~"none", #critical! updated 10/26/2020. this should be redundant.
       
       TRUE ~ "none"  #for all other conditions, it's none.
@@ -1982,11 +2005,13 @@ edge_infra_change_a1_nogeo = bmap_edge_mo_pre_f_nogeo %>%
   #if it's not that, then call it a possible confounder (say, covariate)
   #and then drop it.
   filter(infra_length_mi_any_diff_ind==1) %>% #now filter out the rest
-#  left_join(lookup_edge_diss_a1_eval_prelim, by = "edge_id") %>% #for reference in mapviews only. don't need
+#  left_join(lookup_edge_diss_a1_eval_prelim, by = "edge_id") %>% #for reference in mapviews only. 
+  #Don't need
   left_join(lookup_edge_diss_a1_any_prelim, by = "edge_id") %>%  #linked here based on 1st definition
   #link in the osm names so I can classify them with some more detail
   left_join(lookup_edge_osm_name, by = "edge_id") %>% 
-#  left_join(lookup_edge_project, by = "edge_id") %>% #add the project indicators. actually just use osm_name_osm
+#  left_join(lookup_edge_project, by = "edge_id") %>% #add the project indicators. 
+  #actually just use osm_name_osm
   ### add new diss aim 1 infrastructure (covariates)---------------------------
   mutate(
     #this is infrastructure that to date we're not considering a main exposure
@@ -2298,7 +2323,7 @@ lookup_edge_id_import_vars_but_length = bmap_edge_join_wrangle_nogeo %>%
     beltline,
     starts_with("ribbon"), #important to save this down here because ribbon dates will be better.
     starts_with("highway"), #this grabs highway_1
-    starts_with("hwy"), #7/25/22 - should pick up none.
+    starts_with("hwy"), #7/25/22 - should pick up none. Dec 15, 2022: should pick these up
     starts_with("major_or_res")  #in case there are any descendents
     #    maxspeed ,
     
@@ -2489,7 +2514,7 @@ bmap_diss_a1_corrected_geo =  bmap_edge_join_wrangle %>%
   filter(infra_exclude_for_length==0) %>%  
   filter(diss_a1_eval==1) %>% 
   filter(diss_a1_est==0) %>% 
-  filter(diss_a1_wst==0) %>% #impoportant to keep wst straight
+  filter(diss_a1_wst==0) %>% #important to keep wst straight
   dplyr::select(
     edge_id, starts_with("diss_a1")
   ) %>% 
