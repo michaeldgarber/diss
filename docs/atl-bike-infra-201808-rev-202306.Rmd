@@ -9,7 +9,7 @@ output:
     number_sections: false
 ---
 
-Update June 5th, 2023: This is bicycle infrastructure only. Another page has the stratification by roadway type.
+Update June 5th, 2023. Removing pop-ups for speed.
 
 
 # Map of bicycle infrastructure in Atlanta
@@ -88,3 +88,122 @@ mv_infra_custom_pal_both
 #   leaflet.extras::addFullscreenControl()
 ```
 
+# Map of bicycle infrastructure in Atlanta by roadway type
+
+Bicycle infrastructure in Atlanta within a 5.5-mile radius around Ponce de Leon Ave NE and Monroe Dr NE as of August of 2018, stratified by roadway type. A map of roadway type is here: <https://michaeldgarber.github.io/diss/atl-osm-roadway-type>
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+#This is long. Make sure it's consistent with 
+#~diss/scripts/aim3-figures.R
+
+# Map: infra by highway-------
+#Revising this using edge_mo_infra_study_mo_23_geo
+#Also use hwy_5 instead of hwy_5
+#instead
+## define study area-----------
+setwd(here("data-processed"))
+#lookup_hwy_5 is created in 9_aim3_working_sample.R
+load("lookup_hwy_5.RData")
+
+mv_mp_sf_5halfmi = mp_sf_5halfmi %>% 
+  mapview(
+    alpha.regions = 0,
+              popup=FALSE,#might reduce size
+    color = "grey40", col.regions = "grey40",
+        layer.name = "Study area")
+
+lwd_value = 5
+## infra by highway lane_p------------
+greens_6_middle3 = RColorBrewer::brewer.pal(n=6, name  = "Greens")[5:3]  
+greens_4 = RColorBrewer::brewer.pal(n=4, name  = "Greens") 
+mapview_lane_p_by_highway = edge_mo_infra_study_mo_23_geo %>% 
+  filter(infra_6cat_long_legend_nodirt=="2-Lane-Protected") %>% 
+  left_join(lookup_hwy_5,by="edge_id") %>% 
+  mapview(zcol = "hwy_5",
+          color  = greens_6_middle3,
+          layer.name = "Protected bike lane by roadway type" ,
+          lwd=lwd_value,
+          popup=FALSE,#might reduce size
+          alpha=1)
+
+## infra by highway lane_b--------
+blues_6_top4  = RColorBrewer::brewer.pal(n=6, name  = "Blues")[6:3] 
+mapview_lane_b_by_highway = edge_mo_infra_study_mo_23_geo %>% 
+  filter(infra_6cat_long_legend_nodirt=="3-Lane-Buffered") %>% 
+  left_join(lookup_hwy_5,by="edge_id") %>%  
+  filter(is.na(hwy_5)==FALSE) %>% 
+  mapview(zcol = "hwy_5",
+          color  = blues_6_top4,
+          layer.name = "Buffered bike lane by roadway type" ,
+          lwd=lwd_value,
+                    popup=FALSE,#might reduce size
+          alpha=1)
+
+## infra by highway lane_c----------
+oranges_6_top4  = RColorBrewer::brewer.pal(n=6, name  = "Oranges")[6:3] 
+mapview_lane_c_by_highway = edge_mo_infra_study_mo_23_geo %>% 
+  filter(infra_6cat_long_legend_nodirt=="4-Lane-Conventional") %>% 
+  left_join(lookup_hwy_5,by="edge_id") %>%  
+  filter(is.na(hwy_5)==FALSE) %>% 
+  mapview(zcol = "hwy_5",
+          color  = oranges_6_top4,
+          layer.name = "Conventional bike lane by roadway type" ,
+          lwd=lwd_value,
+                    popup=FALSE,#might reduce size
+          alpha=1)
+
+
+## infra by highway sharrow-------------
+purples_6_top4  = RColorBrewer::brewer.pal(n=6, name  = "Purples")[6:3] 
+
+mapview_sharrow_by_highway = edge_mo_infra_study_mo_23_geo %>% 
+  filter(infra_6cat_long_legend_nodirt=="5-Sharrow") %>% 
+  left_join(lookup_hwy_5,by="edge_id") %>%  
+  filter(is.na(hwy_5)==FALSE) %>% 
+  mapview(zcol = "hwy_5",
+          color  = purples_6_top4,
+          layer.name = "Sharrow by roadway type" ,
+          lwd=lwd_value,
+                    popup=FALSE,#might reduce size
+          alpha=1)
+
+## infra by off-street paved trail-------------
+#al_grey = "#969696"
+mapview_trail_p = edge_mo_infra_study_mo_23_geo %>% 
+  filter(infra_6cat_long_legend_nodirt=="1-Trail-Paved") %>% 
+  left_join(lookup_hwy_5,by="edge_id") %>%  
+  mutate(
+    #make a legend dummy
+    legend_dummy = " "
+  ) %>% 
+  mapview( 
+    color = "black" ,
+              popup=FALSE,#might reduce size
+    layer.name = "Off-street paved trails" ,
+    lwd=3, #note less line width
+    alpha=1)
+
+
+
+## infra by highway mapviews-------------
+
+mv_infra_by_hwy_all=mv_mp_sf_5halfmi+
+  mapview_trail_p+
+  mapview_lane_p_by_highway +
+  mapview_lane_b_by_highway +
+  mapview_lane_c_by_highway +
+  mapview_sharrow_by_highway
+
+#remove junk
+# mv_infra_by_hwy_all_no_junk=mv_infra_by_hwy_all %>% 
+#   mapview::removeMapJunk(
+#     junk = c(
+#       "layersControl",
+#       "zoomControl"
+#     ))
+
+mv_infra_by_hwy_all
+
+#so that it can be popped out full screen
+# mv_infra_by_hwy_all@map %>% 
+#   leaflet.extras::addFullscreenControl()
+```
