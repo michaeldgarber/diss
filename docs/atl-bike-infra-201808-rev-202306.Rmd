@@ -26,7 +26,7 @@ library(leaflet)
 library(leaflet.extras) #for popping out full screen
 #Note see diss/scripts/aim3-figures.R
 setwd(here("data-processed"))
-load("edge_mo_infra_study_mo_23_geo.RData")
+load("edge_mo_infra_study_mo_23_geo.RData")#from aim-3-figures.R
 load("mp_sf_5halfmi.RData")
 ```
 
