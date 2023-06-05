@@ -1,0 +1,28 @@
+---
+title: "simple-test"
+author: "Michael D Garber"
+date: "`r Sys.Date()`"
+output: html_document
+---
+I'm having issues getting rendered maview to load. 
+Trying something super simple to see if works.
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(sf)
+library(here)
+library(mapview)
+library(RColorBrewer)
+#Note see diss/scripts/aim3-figures.R
+setwd(here("data-processed"))
+load("edge_mo_infra_study_mo_23_geo.RData")
+load("mp_sf_5halfmi.RData")
+```
+
+
+```{r}
+mp_sf_5halfmi %>% 
+  mapview(layer.name="study-area")
+```
+
