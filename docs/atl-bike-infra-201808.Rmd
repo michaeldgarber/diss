@@ -8,6 +8,9 @@ output:
     toc_float: true
     number_sections: false
 ---
+Note June 5th, 2023
+Don't render this version. Render the version rev-2023006.
+Keep this one online to see how you had classified infra previously.
 
 # Map of bicycle infrastructure in Atlanta
 
