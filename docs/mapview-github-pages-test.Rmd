@@ -24,5 +24,11 @@ load("mp_sf_5halfmi.RData")
 ```{r}
 mp_sf_5halfmi %>% 
   mapview(layer.name="study-area")
+
+#what about tmap?
+library(tmap)
+tmap_mode("view")
+qtm(mp_sf_5halfmi)
+
 ```
 
