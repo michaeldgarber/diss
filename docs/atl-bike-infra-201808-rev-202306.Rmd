@@ -49,7 +49,9 @@ infra_custom_pal = c(
 
 mv_mp_sf_5halfmi = mp_sf_5halfmi %>% 
   mapview(
-    alpha.regions = 0, color = "grey40", col.regions = "grey40",
+    alpha.regions = 0,
+    color = "grey40", col.regions = "grey40",
+        popup=FALSE,#might reduce size
         layer.name = "Study area")
 
 mv_infra_study_mo_23_infra_custom_pal = edge_mo_infra_study_mo_23_geo %>% 
@@ -63,6 +65,7 @@ mv_infra_study_mo_23_infra_custom_pal = edge_mo_infra_study_mo_23_geo %>%
 #   color=turbo(n=n_distinct(edge_mo_infra_study_mo_23_geo$infra_6cat_long)),
     layer.name = "Infrastructure" ,
     lwd=3,
+    popup=FALSE,#might reduce size
     alpha=0.9
   )  
 

@@ -41,7 +41,9 @@ load("lookup_hwy_5.RData")
 
 mv_mp_sf_5halfmi = mp_sf_5halfmi %>% 
   mapview(
-    alpha.regions = 0, color = "grey40", col.regions = "grey40",
+    alpha.regions = 0,
+              popup=FALSE,#might reduce size
+    color = "grey40", col.regions = "grey40",
         layer.name = "Study area")
 
 lwd_value = 5
@@ -55,6 +57,7 @@ mapview_lane_p_by_highway = edge_mo_infra_study_mo_23_geo %>%
           color  = greens_6_middle3,
           layer.name = "Protected bike lane by roadway type" ,
           lwd=lwd_value,
+          popup=FALSE,#might reduce size
           alpha=1)
 
 ## infra by highway lane_b--------
@@ -67,6 +70,7 @@ mapview_lane_b_by_highway = edge_mo_infra_study_mo_23_geo %>%
           color  = blues_6_top4,
           layer.name = "Buffered bike lane by roadway type" ,
           lwd=lwd_value,
+                    popup=FALSE,#might reduce size
           alpha=1)
 
 ## infra by highway lane_c----------
@@ -79,6 +83,7 @@ mapview_lane_c_by_highway = edge_mo_infra_study_mo_23_geo %>%
           color  = oranges_6_top4,
           layer.name = "Conventional bike lane by roadway type" ,
           lwd=lwd_value,
+                    popup=FALSE,#might reduce size
           alpha=1)
 
 
@@ -93,6 +98,7 @@ mapview_sharrow_by_highway = edge_mo_infra_study_mo_23_geo %>%
           color  = purples_6_top4,
           layer.name = "Sharrow by roadway type" ,
           lwd=lwd_value,
+                    popup=FALSE,#might reduce size
           alpha=1)
 
 ## infra by off-street paved trail-------------
@@ -106,6 +112,7 @@ mapview_trail_p = edge_mo_infra_study_mo_23_geo %>%
   ) %>% 
   mapview( 
     color = "black" ,
+              popup=FALSE,#might reduce size
     layer.name = "Off-street paved trails" ,
     lwd=3, #note less line width
     alpha=1)
