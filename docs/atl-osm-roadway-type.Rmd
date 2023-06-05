@@ -24,11 +24,18 @@ mv_highway_6cat_ordered_with_trunk = bmap_hwy_for_mapview_aim3 %>%
     zcol = "highway_6cat_ordered_with_trunk", 
     color = brewer.pal(n=5, name = "Set2"),
     lwd=2, 
-    alpha=0.7)  
+    alpha=0.7)   
+
+
 
 library(leaflet)
 library(leaflet.extras)
+#Note I'm not using the usual @map syntax, because the remove junk command
+#actually converts it to leaflet
 mv_highway_6cat_ordered_with_trunk@map %>% 
   leaflet.extras::addFullscreenControl()
+
+#Note I'm not using the "remove junk" here because the zoom and layers
+#could be useful for the web version
 ```
 
