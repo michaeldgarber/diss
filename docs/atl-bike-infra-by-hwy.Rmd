@@ -129,7 +129,9 @@ mv_infra_by_hwy_all=mv_mp_sf_5halfmi+
 #       "zoomControl"
 #     ))
 
+mv_infra_by_hwy_all
+
 #so that it can be popped out full screen
-mv_infra_by_hwy_all@map %>% 
-  leaflet.extras::addFullscreenControl()
+# mv_infra_by_hwy_all@map %>% 
+#   leaflet.extras::addFullscreenControl()
 ```

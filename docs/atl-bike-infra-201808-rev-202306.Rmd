@@ -77,8 +77,11 @@ mv_infra_custom_pal_both=mv_infra_study_mo_23_infra_custom_pal+
 #     ))
 
 
+mv_infra_custom_pal_both
+
+#Having issues. Try without the ability to pop out full screen.
 #so that it can be popped out full screen
-mv_infra_custom_pal_both@map %>% 
-  leaflet.extras::addFullscreenControl()
+# mv_infra_custom_pal_both@map %>% 
+#   leaflet.extras::addFullscreenControl()
 ```
 
