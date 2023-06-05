@@ -1,4 +1,3 @@
-
 #filename: aim1_1_1_hex_acs_bootstrap
 
 #This script bootstraps your atlanta ACS variables to create confidence intervals around them for aim 1
