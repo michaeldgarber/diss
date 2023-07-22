@@ -4,13 +4,13 @@ author: "Michael D Garber"
 date: "`r Sys.Date()`"
 output:
   html_document:
-    toc: true
-    toc_float: true
+#    toc: true
+#    toc_float: true
     number_sections: false
 ---
-Note June 5th, 2023
-Don't render this version. Render the version rev-2023006.
-Keep this one online to see how you had classified infra previously.
+
+Update June 5th, 2023. Removing pop-ups for speed.
+
 
 # Map of bicycle infrastructure in Atlanta
 
@@ -26,37 +26,19 @@ library(leaflet)
 library(leaflet.extras) #for popping out full screen
 #Note see diss/scripts/aim3-figures.R
 setwd(here("data-processed"))
-load("lookup_edge_mo_infra_nogeo.RData") #created in 2_wrangle_basemap
-load("lookup_bmap_edge_geo.RData") #geometry lookup
-load("lookup_infra_exclude_for_length_nogeo.RData") #exclude dupes, maybe
+load("edge_mo_infra_study_mo_23_geo.RData")#from aim-3-figures.R
 load("mp_sf_5halfmi.RData")
-load("lookup_edge_osm_name.RData")
 ```
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
-edge_mo_infra_study_mo_23_geo = lookup_edge_mo_infra_nogeo %>% 
-  filter(study_month ==23) %>% 
-  left_join(lookup_bmap_edge_geo, by = "edge_id") %>% 
-  left_join(lookup_infra_exclude_for_length_nogeo, by = "edge_id") %>% 
-  left_join(lookup_edge_osm_name, by = "edge_id") %>% 
-  st_sf() %>% 
-#  filter(ribbon_after_study==0) %>% #shouldn't be needed since we're specifying study month above
-  filter(infra_exclude_for_length==0) %>% #this is for the visualization but not the calculation
-  filter(infra_6cat_long_legend_nodirt !="none") %>% 
-#  filter(infra_6cat_long_legend_nodirt !="5-Sharrow") %>% 
-  st_intersection(mp_sf_5halfmi)  %>% 
-  dplyr::select(
-    #I might post this, so drop the radius name and the Monroe & Ponce intersection name
-    -starts_with("radius_name"),
-    -starts_with("geocoded_name")) 
-
-mv_mp_sf_5halfmi = mp_sf_5halfmi %>% 
-  mapview(
-    alpha.regions = 0, color = "grey40", col.regions = "grey40",
-        layer.name = "Study area")
-
-#Create the custom color palette as we did in aim3-figures.
 library(RColorBrewer)
+library(shades)
+greens_6_middle3 = RColorBrewer::brewer.pal(n=6, name  = "Greens")[5:3]  
+greens_4 = RColorBrewer::brewer.pal(n=4, name  = "Greens") 
+blues_6_top4  = RColorBrewer::brewer.pal(n=6, name  = "Blues")[6:3] 
+oranges_6_top4  = RColorBrewer::brewer.pal(n=6, name  = "Oranges")[6:3] 
+purples_6_top4  = RColorBrewer::brewer.pal(n=6, name  = "Purples")[6:3] 
+
 infra_custom_pal = c(
   "black",
   brewer.pal(n=3, "Greens")[3],
@@ -65,24 +47,45 @@ infra_custom_pal = c(
   brewer.pal(n=3, "Purples")[3]
 )
 
-mv_infra_study_mo_23 = edge_mo_infra_study_mo_23_geo %>% 
+mv_mp_sf_5halfmi = mp_sf_5halfmi %>% 
+  mapview(
+    alpha.regions = 0,
+    color = "grey40", col.regions = "grey40",
+        popup=FALSE,#might reduce size
+        layer.name = "Study area")
+
+mv_infra_study_mo_23_infra_custom_pal = edge_mo_infra_study_mo_23_geo %>% 
   #remove some extraneous vars I don't want included in an interactive map
   dplyr::select(
     -starts_with("infra_exclude")) %>% 
   mapview(
     zcol =  "infra_6cat_long_legend_nodirt",  
     color = infra_custom_pal,
+    #what about turbo?
+#   color=turbo(n=n_distinct(edge_mo_infra_study_mo_23_geo$infra_6cat_long)),
     layer.name = "Infrastructure" ,
-    lwd=4,
+    lwd=3,
+    popup=FALSE,#might reduce size
     alpha=0.9
-  ) 
+  )  
 
-mv_map_infra_study_area = mv_infra_study_mo_23+ 
+mv_infra_custom_pal_both=mv_infra_study_mo_23_infra_custom_pal+ 
   mv_mp_sf_5halfmi
+#remove map junk
+# mv_infra_custom_pal_both_no_junk=mv_infra_custom_pal_both %>% 
+#   mapview::removeMapJunk(
+#     junk = c(
+#       "layersControl",
+#       "zoomControl"
+#     ))
 
+
+mv_infra_custom_pal_both
+
+#Having issues. Try without the ability to pop out full screen.
 #so that it can be popped out full screen
-mv_map_infra_study_area@map %>% 
-  leaflet.extras::addFullscreenControl()
+# mv_infra_custom_pal_both@map %>% 
+#   leaflet.extras::addFullscreenControl()
 ```
 
 # Map of bicycle infrastructure in Atlanta by roadway type
@@ -93,145 +96,114 @@ Bicycle infrastructure in Atlanta within a 5.5-mile radius around Ponce de Leon 
 #~diss/scripts/aim3-figures.R
 
 # Map: infra by highway-------
-library(tidyverse)
-library(sf)
-library(mapview)
-
+#Revising this using edge_mo_infra_study_mo_23_geo
+#Also use hwy_5 instead of hwy_5
+#instead
 ## define study area-----------
 setwd(here("data-processed"))
-load("bmap_edge_join_wrangle.RData")
-load("mp_sf_5halfmi.RData")
-mapview_study_area = mapview(
-  mp_sf_5halfmi, 
-  lwd=1,
-  alpha.regions = 0, color = "darkgray", col.regions = "darkgray",
-  layer.name = "Study area")
+#lookup_hwy_5 is created in 9_aim3_working_sample.R
+load("lookup_hwy_5.RData")
 
+mv_mp_sf_5halfmi = mp_sf_5halfmi %>% 
+  mapview(
+    alpha.regions = 0,
+              popup=FALSE,#might reduce size
+    color = "grey40", col.regions = "grey40",
+        layer.name = "Study area")
 
 lwd_value = 5
 ## infra by highway lane_p------------
 greens_6_middle3 = RColorBrewer::brewer.pal(n=6, name  = "Greens")[5:3]  
 greens_4 = RColorBrewer::brewer.pal(n=4, name  = "Greens") 
-
-mapview_lane_p_by_highway = bmap_edge_join_wrangle %>% 
-  filter(ribbon_after_study==0) %>% 
-  filter(infra_exclude_for_length==0) %>% 
-  filter(infra_6cat_none_abbrev=="lane_p") %>% 
-  st_intersection(mp_sf_5halfmi) %>% 
-  dplyr::select(
-    edge_id,
-    starts_with("osm_id"),
-    starts_with("osm_name"),
-    infra_6cat_none_abbrev,
-    infra_exclude_for_length,
-    highway_6cat_ordered_with_trunk
-  ) %>% 
-  mapview(zcol = "highway_6cat_ordered_with_trunk",
+mapview_lane_p_by_highway = edge_mo_infra_study_mo_23_geo %>% 
+  filter(infra_6cat_long_legend_nodirt=="2-Lane-Protected") %>% 
+  left_join(lookup_hwy_5,by="edge_id") %>% 
+  mapview(zcol = "hwy_5",
           color  = greens_6_middle3,
           layer.name = "Protected bike lane by roadway type" ,
           lwd=lwd_value,
+          popup=FALSE,#might reduce size
           alpha=1)
 
 ## infra by highway lane_b--------
 blues_6_top4  = RColorBrewer::brewer.pal(n=6, name  = "Blues")[6:3] 
-mapview_lane_b_by_highway = bmap_edge_join_wrangle %>% 
-  filter(ribbon_after_study==0) %>% 
-  filter(infra_exclude_for_length==0) %>% 
-  filter(infra_6cat_none_abbrev=="lane_b") %>% 
-  st_intersection(mp_sf_5halfmi) %>% 
-  dplyr::select(
-    edge_id,
-    starts_with("osm_id"),
-    starts_with("osm_name"),
-    infra_6cat_none_abbrev,
-    infra_exclude_for_length,
-    highway_6cat_ordered_with_trunk
-  ) %>% 
-  mapview(zcol = "highway_6cat_ordered_with_trunk",
+mapview_lane_b_by_highway = edge_mo_infra_study_mo_23_geo %>% 
+  filter(infra_6cat_long_legend_nodirt=="3-Lane-Buffered") %>% 
+  left_join(lookup_hwy_5,by="edge_id") %>%  
+  filter(is.na(hwy_5)==FALSE) %>% 
+  mapview(zcol = "hwy_5",
           color  = blues_6_top4,
           layer.name = "Buffered bike lane by roadway type" ,
           lwd=lwd_value,
+                    popup=FALSE,#might reduce size
           alpha=1)
 
 ## infra by highway lane_c----------
 oranges_6_top4  = RColorBrewer::brewer.pal(n=6, name  = "Oranges")[6:3] 
-mapview_lane_c_by_highway = bmap_edge_join_wrangle %>% 
-  filter(ribbon_after_study==0) %>% 
-  filter(infra_exclude_for_length==0) %>% 
-  filter(infra_6cat_none_abbrev=="lane_c") %>% 
-  st_intersection(mp_sf_5halfmi) %>% 
-  dplyr::select(
-    edge_id,
-    starts_with("osm_id"),
-    starts_with("osm_name"),
-    infra_6cat_none_abbrev,
-    infra_exclude_for_length,
-    highway_6cat_ordered_with_trunk
-  ) %>% 
-  mapview(zcol = "highway_6cat_ordered_with_trunk",
+mapview_lane_c_by_highway = edge_mo_infra_study_mo_23_geo %>% 
+  filter(infra_6cat_long_legend_nodirt=="4-Lane-Conventional") %>% 
+  left_join(lookup_hwy_5,by="edge_id") %>%  
+  filter(is.na(hwy_5)==FALSE) %>% 
+  mapview(zcol = "hwy_5",
           color  = oranges_6_top4,
           layer.name = "Conventional bike lane by roadway type" ,
           lwd=lwd_value,
+                    popup=FALSE,#might reduce size
           alpha=1)
+
 
 ## infra by highway sharrow-------------
 purples_6_top4  = RColorBrewer::brewer.pal(n=6, name  = "Purples")[6:3] 
-mapview_sharrow_by_highway = bmap_edge_join_wrangle %>% 
-  filter(ribbon_after_study==0) %>% 
-  filter(highway_6cat_ordered_with_trunk!="5-unclassified or service") %>% 
-  filter(infra_exclude_for_length==0) %>% 
-  filter(infra_6cat_none_abbrev=="sharrow") %>% 
-  st_intersection(mp_sf_5halfmi) %>% 
-  dplyr::select(
-    edge_id,
-    starts_with("osm_id"),
-    starts_with("osm_name"),
-    infra_6cat_none_abbrev,
-    infra_exclude_for_length,
-    highway_6cat_ordered_with_trunk
-  ) %>% 
-  mapview(zcol = "highway_6cat_ordered_with_trunk",
+
+mapview_sharrow_by_highway = edge_mo_infra_study_mo_23_geo %>% 
+  filter(infra_6cat_long_legend_nodirt=="5-Sharrow") %>% 
+  left_join(lookup_hwy_5,by="edge_id") %>%  
+  filter(is.na(hwy_5)==FALSE) %>% 
+  mapview(zcol = "hwy_5",
           color  = purples_6_top4,
           layer.name = "Sharrow by roadway type" ,
           lwd=lwd_value,
+                    popup=FALSE,#might reduce size
           alpha=1)
 
 ## infra by off-street paved trail-------------
-mapview_trail_p = bmap_edge_join_wrangle %>% 
-  filter(ribbon_after_study==0) %>% 
-  filter(infra_exclude_for_length==0) %>% 
-  filter(infra_6cat_none_abbrev=="trail_p") %>% 
-  #   filter(infra_trail_p_on_roadway != 1) %>%
-  st_intersection(mp_sf_5halfmi) %>% 
-  dplyr::select(
-    edge_id,
-    starts_with("osm_id"),
-    starts_with("osm_name"),
-    infra_6cat_none_abbrev,
-    infra_exclude_for_length,
-    highway_6cat_ordered_with_trunk
-  ) %>% 
+#al_grey = "#969696"
+mapview_trail_p = edge_mo_infra_study_mo_23_geo %>% 
+  filter(infra_6cat_long_legend_nodirt=="1-Trail-Paved") %>% 
+  left_join(lookup_hwy_5,by="edge_id") %>%  
   mutate(
     #make a legend dummy
     legend_dummy = " "
   ) %>% 
   mapview( 
     color = "black" ,
+              popup=FALSE,#might reduce size
     layer.name = "Off-street paved trails" ,
-    lwd=4, #note less line width
+    lwd=3, #note less line width
     alpha=1)
+
+
 
 ## infra by highway mapviews-------------
 
-mv_infra_hwy_combined = mapview_study_area+
+mv_infra_by_hwy_all=mv_mp_sf_5halfmi+
   mapview_trail_p+
   mapview_lane_p_by_highway +
   mapview_lane_b_by_highway +
   mapview_lane_c_by_highway +
   mapview_sharrow_by_highway
 
-#so that it can be popped out full screen
-mv_infra_hwy_combined@map %>% 
-  leaflet.extras::addFullscreenControl()
-```
+#remove junk
+# mv_infra_by_hwy_all_no_junk=mv_infra_by_hwy_all %>% 
+#   mapview::removeMapJunk(
+#     junk = c(
+#       "layersControl",
+#       "zoomControl"
+#     ))
 
+mv_infra_by_hwy_all
+
+#so that it can be popped out full screen
+# mv_infra_by_hwy_all@map %>% 
+#   leaflet.extras::addFullscreenControl()
+```

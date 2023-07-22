@@ -2,8 +2,10 @@
 
 #12/5/21 I decided to split this off from the other 2_wrangle_basemap code.
 #Note that all of this code used to be in 2_wrangle_basemap before 12/5/21
-#The reason for splitting it off is that, in theory, it should not need to be run very often at all, only
-#if the actual geometry of either the OSM data or the basemap changes, which should be rare if ever again
+#The reason for splitting it off is that, in theory, 
+#it should not need to be run very often at all, only
+#if the actual geometry of either the OSM data or the basemap changes, 
+#which should be rare if ever again
 
 #I also decided, because it's easier to keep track, I'm not going to include
 #most of the covariates in this code. Just the variables necessary to complete the merges.
@@ -43,7 +45,8 @@ library(here)
 #     osm_name_strava = OSM_NAME
 #     ) %>%
 #   rename(
-#     #apparently these are used to determine whether a street is more of an east-west street or a north-south street
+#     #apparently these are used to determine whether a street is more of an east-west 
+#street or a north-south street
 #     #so keep.
 #     x_coord_1 = X1,
 #     x_coord_2 = X2,
@@ -102,7 +105,8 @@ library(tidyverse)
 library(sf)
 
 #----initial lookups based on the initial basemap so I can get rid of the variables----#######
-#just calling it a look-up since that's really what it is. I have so many other datasets that merge by edge_id
+#just calling it a look-up since that's really what it is. I have so many other datasets that 
+#merge by edge_id
 lookup_edge_id_strava_bmap_init_vars_nogeo = edge_bmap_20180630_sf %>% 
   st_set_geometry(NULL)
 save(lookup_edge_id_strava_bmap_init_vars_nogeo, file = "lookup_edge_id_strava_bmap_init_vars_nogeo.RData")
@@ -192,7 +196,8 @@ library(mapview)
 packageVersion("sf")
 
 #Revising 12/5/5/21 to only intersect the look-up table and then link everything back by edge id
-#note that lookup_all_h_osm_wrangle_buff_20ft_geo is a look up by osm_id that can be used to link in the rest of the data
+#note that lookup_all_h_osm_wrangle_buff_20ft_geo is a look up by osm_id that 
+#can be used to link in the rest of the data
 #and you can then use the no_geo lookup
 names(all_h_osm_wrangle_both_nogeo)
 names(lookup_all_h_osm_wrangle_buff_20ft_geo)
@@ -201,8 +206,9 @@ st_crs(bmap_edge_join_asp_geo)
 st_crs(lookup_all_h_osm_wrangle_buff_20ft_geo)
 
 #------Spatial join prep intermediate steps-------##############
-#----Simplify the universe of OSM data that should be merged with the basemap that didn't merge aspatially-----#
-#I'm doing this to make the osm data much smaller to speed up the spatial join below. It's unfortunate that I have to do this
+# Simplify the universe of OSM data that should be merged with the basemap that didn't merge aspatially #
+#I'm doing this to make the osm data much smaller to speed up the spatial join below.
+#It's unfortunate that I have to do this
 bmap_edge_didnt_join_asp_buff_20ft = bmap_edge_join_asp_geo %>% #sp for spatial join
   filter(join_aspatial==0) %>% 
   dplyr::select(edge_id, starts_with("join")) %>% 
@@ -234,10 +240,13 @@ lookup_all_h_osm_wrangle_intersecting_not_joining_bmap = lookup_all_h_osm_wrangl
   ungroup() %>% 
   #get back to only osm_id_osm and geometry
   dplyr::select(starts_with("osm_id"), geometry)
-#oh wow, this actually worked fairly quickly 12/5/21 1:20 pm. I thought it wouldn't work without the st_union  it seemed to.
+#oh wow, this actually worked fairly quickly 12/5/21 1:20 pm. 
+#I thought it wouldn't work without the st_union  it seemed to.
 #so now I can merge this with the basemap below insteaed of the huge one. hopefully faster.
 
-save(lookup_all_h_osm_wrangle_intersecting_not_joining_bmap, file = "lookup_all_h_osm_wrangle_intersecting_not_joining_bmap.RData")
+save(
+  lookup_all_h_osm_wrangle_intersecting_not_joining_bmap, 
+  file = "lookup_all_h_osm_wrangle_intersecting_not_joining_bmap.RData")
 
 names(lookup_all_h_osm_wrangle_intersecting_not_joining_bmap)
 
@@ -289,7 +298,8 @@ bmap_edge_join_asp_geo_small_test = bmap_edge_join_asp_geo %>%
   filter(join_aspatial==0) %>%  
   dplyr::select(edge_id, geometry) %>% 
   slice(1:2) %>% 
-  #  st_intersection(lookup_all_h_osm_wrangle_intersecting_not_joining_bmap_buff_20ft) #trying st_intersection instead
+  #trying st_intersection instead
+  #  st_intersection(lookup_all_h_osm_wrangle_intersecting_not_joining_bmap_buff_20ft) 
   # st_join(lookup_all_h_osm_wrangle_intersecting_not_joining_bmap_buff_20ft, left = TRUE, largest = FALSE)    #try without largest=TRUE
   st_join(lookup_all_h_osm_wrangle_intersecting_not_joining_bmap_buff_20ft,
           left = TRUE,
@@ -311,7 +321,9 @@ end_time-start_time
 
 #-----very slow code - has not been updated since June 2021--------#################
 #I expect this code takes about 15 hours on my Lenovo 16 GB ram
-names(bmap_edge_join_asp_geo) #note no osm name but we do have osm id, which will allow us to link all osm vars later.
+#note no osm name but we do have osm id, which will allow 
+#us to link all osm vars later.
+names(bmap_edge_join_asp_geo) 
 names(lookup_all_h_osm_wrangle_intersecting_not_joining_bmap_buff_20ft)
 bmap_edge_join_sp_geo = bmap_edge_join_asp_geo %>% #sp for spatial join
   #limit to those that didn't join. this is only 5495 obs. I'm surprised it doesn't go faster.
@@ -320,9 +332,11 @@ bmap_edge_join_sp_geo = bmap_edge_join_asp_geo %>% #sp for spatial join
   dplyr::select(edge_id, geometry) %>% 
   #12/5/21 revising this to only include the geometry to make it hopefully faster.
   #This is taking much longer than expected. I wonder if the largest=TRUE is what's causing it.
-  #You could try to omit that, measure, and then sort ascending. No, that won't work, actually.
+  #You could try to omit that, measure, and then sort ascending. 
+  #No, that won't work, actually.
   #largest=true is the only way to do it. an alternative would be to sort ascending and take the edge id
-  #corresponding to the longest osm_id_osm but that won't necesarilly return the osm_id with the largest overlap
+  #corresponding to the longest osm_id_osm but that won't necesarilly 
+  #return the osm_id with the largest overlap
   #with that edge_id
   #hmm, largest=FALSE is much faster but it doesn't return exactly what we want.
   st_join(lookup_all_h_osm_wrangle_intersecting_not_joining_bmap_buff_20ft, 
@@ -343,8 +357,9 @@ save(bmap_edge_join_sp_geo, file = "bmap_edge_join_sp_geo.RData")
 
 
 ####-------------1.2.3 Join aspatial and spatial join together----------------------------####
-#12/5/21 code that you wouldn't repeat but doing here once to remove the OSM vars from the old version of bmap_edge_join
-#because they're not updated. or, rather, including the vars I'd expect it to have once the code finanlly runs
+#12/5/21 code that you wouldn't repeat but doing here once to remove the OSM vars 
+#from the old version of bmap_edge_join because they're not updated.
+#Or, rather, including the vars I'd expect it to have once the code finanlly runs
 # bmap_edge_join_save_just_in_case = bmap_edge_join_geo
 # save(bmap_edge_join_save_just_in_case, file = "bmap_edge_join_save_just_in_case.RData")
 # load(file = "bmap_edge_join_save_just_in_case.RData")

@@ -67,7 +67,8 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
     highway = case_when(
       
       #fix the one at trinity that was in strava osm and was not recoded in the osm data
-      osm_id_strava ==  414497329 ~  "tertiary", #this is coded as a cycleway but link it to trinity's highway
+      #this is coded as a cycleway but link it to trinity's highway
+      osm_id_strava ==  414497329 ~  "tertiary", 
       osm_id_strava ==  414497333 ~  "tertiary",
       
       #you know what, Mike. it might be perceived as dishonest. just leave it as is.
@@ -226,7 +227,8 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
 
     
     ### ponce buffered bike lane fixes---------
-    # it should stop at myrtle and begin at whole foods/ home depot parking lot. west of piedmont to juniper, 
+    # it should stop at myrtle and begin at whole foods/ home depot parking lot.
+   #west of piedmont to juniper, 
     #it's a normal conventional bike lane. it's a sharrow west of juniper to peachtree.
     project_ponce_buffered_to_none = case_when(
       edge_id %in% 
@@ -313,25 +315,129 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
        805089,
        828172
        )~1),
+   
+   ### Clifton work--------
+   #June 1, 2023
+    #need to do more Clifton work here rather than in OSM because
+   #there is variation within the OSM id that exists between edge_id.
+   #In the OSM-based segments, some of this is coded as a conventional bike lane,
+   #but it needs to be a little longer.
+   project_clifton_emory_conf_hotel_to_emory_point_fix=case_when(
+     edge_id %in% c(
+       1405238,1405237,1405236,1189848,769343
+     )~1),
+    
+   ### Pharr Road - Buckhead---------
+   #currently, it's coded all as a conventional bike lane.
+   #There is a brief buffered bike lane and a sharrow.
+   #This is a perfect example of - don't give up at the intersection.
+    #it's a sharrow at both intersections
+   #It's currently all coded as a conventional bike lane,
+   #so the only modifications need to be for the sharrows and the
+   #brief buffered bike lane
+   project_pharr_sharrow=case_when(
+     edge_id %in% c(
+      318767,#intersection with peachtree 
+      
+      #towards intersection with piedmont it becomes
+      #a sharrow
+      318792,
+      318793,
+      318794,
+      318795,
+      318796,
+      318797,
+      318798,
+      318799,
+      318800,
+      318801,
+      318802
+   )~1),
+   
+   #from old decatur rd to hardman ct
+   #and then east of this, a sharrow
+   project_pharr_buffered=case_when(
+     edge_id %in% c(
+       318783,#east of old decatur rd ne
+       318784,
+       318785,
+       318786,
+       318787,
+       318788,
+       318789,
+       318790,
+       318791
+     )~1),
+   
+   ### Defoor Ave-------
+   #It doesn't go as far east as it says
+   project_defoor_not_bike_lane=case_when(
+     edge_id%in% c(
+       346774, 346773
+     )~1),
+   
+   ### Joseph E Boone - Buckhead-------
+   #I fixed it in the wrangle-bike-infra-summer-2016 code
+   #so that I will simply add a bike lane in a few segments
+    project_joseph_e_boone_sharrow=case_when(
+      edge_id%in% c(
+        1183790,
+        1183816,
+        1183786
+      )~1),
+   
+   #a very, very brief lane here. otherwise, nothing.
+    project_joseph_e_boone_conv=case_when(
+      edge_id%in% c(
+        1183816,
+        1183815
+      )~1),
+   
+   ###Peachtree Circle NE-----
+   #Peachtree Circle bike lane ends before the intersection with
+   #Peachtree
+   project_peachtree_cir_remove_bike_lane=case_when(
+     edge_id%in% c(
+     1412916,
+     363275,
+     363274
+     )~1),
 
-   
-   
+
    ### re-create infra_6cat var-----------
   
     infra_6cat = case_when(
       
+      #### sharrows---------
+      project_pharr_sharrow==1~"sharrow",
+      project_joseph_e_boone_sharrow==1~"sharrow",
+    
+      #### conventional bike lane (or not)----------      
       project_east_lake_park_place_conventional ==1 ~ "bike_lane_conventional",
       project_east_lake_buffered == 1 ~ "bike_lane_buffered",
       project_ponce_buffered_to_none==1 ~ NA_character_,
+      project_defoor_not_bike_lane==1~NA_character_,#added June 1, 2023
+      project_peachtree_cir_remove_bike_lane==1~NA_character_,#added June 1, 2023
       project_ponce_buffered_to_conventional==1 ~"bike_lane_conventional",
       
-      #note this is as of 7/14/2017
-      project_westview_protected_temporary  == 1 ~ "bike_lane_conventional",       
+      #remove the bike lane at the northwest part of peachtree circle.
+      #It begins farther away from the intersection.
+
       
+      #note this is as of 7/14/2017
+      project_westview_protected_temporary  == 1 ~ "bike_lane_conventional", 
+      
+      #Added June 1, 2023
+      project_clifton_emory_conf_hotel_to_emory_point_fix==1~"bike_lane_conventional", 
+      
+      project_joseph_e_boone_conv==1~"bike_lane_conventional",#june 1, 2023 added
+      
+      #### buffered bike lanes-----------
       #re-classify the ralph david abernathy lanes
       project_rda_bike_lane_buff_2018mar==1 ~"bike_lane_buffered",
       project_rda_cascade_mlk_bike_lane_buff==1 ~ "bike_lane_buffered",
       project_rda_cascade_mlk_bike_lane_conv==1 ~ "bike_lane_conventional",
+      project_pharr_buffered==1~"bike_lane_buffered",
       
       #Piedmont Park stuff
       project_piedmont_park_dirt == 1 ~ "off_street_trail_dirt",
@@ -341,8 +447,13 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
       
       #### set the following to missing------
       osm_id_strava %in% c(
-        525613028, #somehow highland got coded as a bike lane. it's not. it's nothing.
-        #it got coded as a bike lane during the merge between the arc-coa data somehow (1_wrangle_osm)
+        525613028, #somehow highland got coded as a bike lane. 
+        #It's not. it's nothing.
+        #it got coded as a bike lane during the merge between 
+        #the arc-coa data somehow (1_wrangle_osm)
+        #Update June 1, 2023 - this should be fixed now earlier in the pipeline,
+        #but this c() syntax is flexible, so we can keep this for double
+        #robustness
         79391905, #stray sharrow that's just a parking lot
         96433108,#stray segment on peachtree. set to missing
         #mclendon and lake claire
@@ -371,6 +482,7 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
         
         #bike lane vs trail on trinity
         1128002,
+        #exclude sidewalk at 
         #clifton and haygood intersection crossing
         1129304,
         1129303 
@@ -380,13 +492,14 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
       edge_id %in% c(
         1093486,  #euclid and moreland walkway at L5P - it's a path
         
-        #these are tech parkway north of north - not technically a protected bike lane
+        #these are tech parkway north of north - not technically a 
+        #protected bike lane
         825556,        
         825555
       ) ~ "off_street_trail_paved", 
       
       edge_id %in% c(
-        1224093 #code das a sharrow at hemphill; it's a sidewalk that should be a bike lane
+        1224093 #coded as a sharrow at hemphill; it's a sidewalk that should be a bike lane
       )  ~ "bike_lane_conventional", 
       
       #a few edges of sylvan are actually buffered, not conventional
@@ -402,13 +515,15 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
     ),
     
     
-    #now classify the others according to how you just did that one, above, following the same code
+    #now classify the others according to how you just did that one, above, 
+   #following the same code
     infra_6cat_none = case_when(
       is.na(infra_6cat)==TRUE ~ "none",
       TRUE ~ infra_6cat
     ),
     
-    ### re-define infra_6cat_none_abbrev (repeating from 1_wrangle_osm code)-----------
+    ### re-define infra_6cat_none_abbrev-------
+   #(repeating from 1_wrangle_osm code)
     infra_6cat_none_abbrev = case_when(
       infra_6cat_none == "off_street_trail_paved" ~ "trail_p", 
       infra_6cat_none == "off_street_trail_dirt" ~ "trail_d", 
@@ -421,7 +536,7 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
    
    #1/3/22
    #make dichotomous versions of each so that you can include as a dummy var
-   #in sf model, #dich for dichotomous
+   #in sampling fraction model, #dich for dichotomous
    infra_dich_trail_p=case_when(
      infra_6cat_none_abbrev == "trail_p" ~ 1,
      TRUE ~ 0),
@@ -800,7 +915,8 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
           #bill kennedy west of roadway
           1136613,
           
-          #bill kennedy - the new trail east of roadway that shouldn't be double counted during the study period
+          #bill kennedy - the new trail east of roadway that shouldn't 
+          #be double counted during the study period
           1136604,
           
           #bill kennedy - beltline trail segment (did I make this?) across i-20
@@ -829,7 +945,7 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
           1129098,
           
           1129074, #peachtree and pine crosswalk
-          
+
           #conventional bike lanes at tech (make this the end to avoid the comma issue)
           1224066
         ) ~ 1
@@ -979,10 +1095,16 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
     ### double counting cycletracks----
     infra_exclude_for_length_cycletrack = case_when(
       edge_id %in% c(
-        #keeping the roadway file and excluding the one that is specifically coded at the cycletrack
+        
+        #June 5th, 2023
+        #Note this is coded as a protected bike lane.
+        #It's more of an off-street paved trail. Not a huge deal.
+        #1184165
+        #keeping the roadway file and excluding the one that is specifically 
+        #coded at the cycletrack.
+      
         1018455,
         1018456,
-        1018459,
         1129129,
         1018454,
         1018453,
@@ -995,7 +1117,9 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
         1018443,
         1018447,
         
+        #John Portman Blvd east-west
         1018457,
+        1018459,
         1018460,
         1018461,
         1018462,
@@ -1011,13 +1135,20 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
 
         794357,
         766736 #n mcdonough and school
-      ) ~ 1
+      ) ~ 1,
+      
+      #Adding this June 1, 2023
+      #Update June 5th, 2023:
+      #Don't include project_peachtree_center_pbl_east
+      #because the segment to its west is already excluded in
+      #length calculations
     ),
     
     ### double counting off-street paths------
     infra_exclude_for_length_trail_paved = case_when(
       edge_id %in% c(
-        #duplicate atlanta beltline westside trail (excluding the one without an osm_id_osm)
+        #duplicate atlanta beltline westside trail 
+        #(excluding the one without an osm_id_osm)
         327174, #32174 does NOT go all the way to lena st, as it should.
         #327174 also goes too far down to the beltline southside trail,
         #so exclude 
@@ -1027,7 +1158,10 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
         # 1423727, #keep
         # 1423730, #keep these
         
-        #an extraneous eastside trail segment at dekalb avenue south of edgewood
+        #Exclude a duplicate West End Trail that is on White Street.
+        
+        #an extraneous eastside trail segment at dekalb avenue south of 
+        #edgewood
         316159,
         981386,
         1047668,
@@ -1075,13 +1209,18 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
     
     ## a variable that is used in your tables and exclusions------------
     #(only minor concern is these are not time -dependent but that shouldn't be an issue)
-    #see my mapview in the basemap checks code. there are quite a few dirt paths and sidewalks
-    #and golf cart tracks, etc., that are not coded as infrastructure nor are they passable by a car
-    #for the moment, I'm getting rid of them. it'd be nice to classify them as off-street paved trails
+    #see my mapview in the basemap checks code. there are quite a few dirt paths and 
+   #sidewalks
+    #and golf cart tracks, etc., that are not coded as infrastructure nor are they 
+   #passable by a car
+    #for the moment, I'm getting rid of them. it'd be nice to classify them as off-street 
+   #paved trails
     #when possible but that HAS TO BE LATER.
-    #3/10/21 update - I said the HAS TO BE LATER during the dissertation phase. I could include now?
+    #3/10/21 update - I said the HAS TO BE LATER during the dissertation phase. 
+   #I could include now?
     
-    #the purpose of this indicator variable is to exclude missing highway variables unless infra is a trail
+    #the purpose of this indicator variable is to exclude missing highway variables 
+   #unless infra is a trail
     highway_missing_no_trail_exclude = case_when(
       #it's supposed to be missing if it's a trail..
       infra_6cat_none_abbrev == "trail_p" ~0,  
@@ -1134,7 +1273,7 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
     starts_with("ribbon"), 
     starts_with("study_month"), 
     starts_with("project"),
-    starts_with("diss"), #this picks up the dissertation aim 1 indicators created in osm wrangle
+    starts_with("diss"), #this picks up the diss aim 1 indicators created in osm wrangle
     starts_with("highway"), #this grabs highway_1
     starts_with("hwy"), #grab the small highway variables
     starts_with("major_or_res"), #in case there are any descendents
@@ -1148,7 +1287,8 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
     starts_with("mtb"),
     contains("foot"),
     proposed  ,
-    service, #this says what type of roadway it is if it's service, like driveway, which you may exclude
+    service, #this says what type of roadway it is if it's service, like driveway, 
+    #which you may exclude
 
     name_1 ,
 
@@ -1163,7 +1303,8 @@ save(bmap_edge_join_wrangle0, file = "bmap_edge_join_wrangle0.RData")
 nrow(bmap_edge_join_wrangle0)
 table(bmap_edge_join_wrangle0$nobikes) #yep
 names(bmap_edge_join_wrangle0)
-#update 6/2/21 how many are missing ribbon. and if they're missing ribbon, they may not get processed later...
+#update 6/2/21 how many are missing ribbon. and if they're missing ribbon, 
+#they may not get processed later...
 
 ## check on Piedmont Park. It seems I'm not picking up some paths:
 load("monpon_sf_1mi.RData")
@@ -1277,6 +1418,11 @@ bmap_osm_highway_both = bmap_osm_present %>%
   mutate(lookup_name_number_indicator =1)
 
 
+# check conventional bike lanes before longitudinal
+# bmap_edge_join_wrangle0 %>% 
+#   filter(infra_6cat_none_abbrev=="lane_c") %>% 
+#   mapview()
+
 
 ## combo-id - highway - lookup-----
 
@@ -1296,7 +1442,8 @@ lookup_infra_6cat_legend_none = bmap_osm_highway_both %>%
   st_set_geometry(NULL) %>% 
   distinct(infra_6cat_none_abbrev, infra_6cat_legend_none)
 save(lookup_infra_6cat_legend_none, file = "lookup_infra_6cat_legend_none.RData")
-
+load("lookup_infra_6cat_legend_none.RData")
+lookup_infra_6cat_legend_none
 
 lookup_osm_name_infra_combo_id = bmap_osm_highway_both %>% 
   st_set_geometry(NULL) %>% 
@@ -1326,9 +1473,11 @@ save(lookup_osm_name_highway_combo_id_edge_id, file = "lookup_osm_name_highway_c
 load("lookup_osm_name_highway_combo_id_edge_id.RData")
 
 # Final bmap wrangle before longitudinal----------
-#9/30 - note here I am saving it to both locations. I'd like the "analysis data" location to be used
-#moving forward where I remember to change it, but by saving it to both places, it will make sure
-#that the Strava 2018 folder also has an updated copy in case the working directory is not changed in a code.
+#9/30 - note here I am saving it to both locations. I'd like the "analysis data" 
+#location to be used moving forward where I remember to change it, 
+#but by saving it to both places, it will make sure
+#that the Strava 2018 folder also has an updated copy in case the 
+#working directory is not changed in a code.
 
 #update 11/15/2020
 #hmm, okay, so what I think I'll do to keep all of these missings is consider the individual
@@ -1601,6 +1750,7 @@ library(sf)
 
 #-------separate these out for speed before longitudinal processing----------##########
 names(bmap_edge_join_wrangle_pre_long_nogeo)
+
 lookup_bmap_edge_keep_for_long= bmap_edge_join_wrangle_pre_long_nogeo %>% 
   dplyr::select(
     edge_id, 
@@ -1610,6 +1760,7 @@ lookup_bmap_edge_keep_for_long= bmap_edge_join_wrangle_pre_long_nogeo %>%
     starts_with("diss_a1"),
     starts_with("ribbon_study_mo"),
     project_westview_protected_temporary,
+    project_clifton_n_decatur_to_e_row_before_201708,#need this! June 1, 2023
     study_month_max_aim1
     )
 
@@ -1621,18 +1772,22 @@ lookup_bmap_edge_exclude_for_long =bmap_edge_join_wrangle_pre_long_nogeo %>%
     -starts_with("diss_a1"),
     -starts_with("ribbon_study_mo"), 
     -project_westview_protected_temporary,
+    -project_clifton_n_decatur_to_e_row_before_201708,
     -study_month_max_aim1
     ) 
 
 ncol(lookup_bmap_edge_keep_for_long)
 ncol(lookup_bmap_edge_exclude_for_long)
 ncol(bmap_edge_join_wrangle_pre_long_nogeo)  
+names(lookup_bmap_edge_exclude_for_long)
 
+names(lookup_bmap_edge_mo)
 bmap_edge_mo_pre_f_nogeo =  lookup_bmap_edge_mo %>%
   left_join(lookup_bmap_edge_keep_for_long, by = "edge_id") %>% 
   mutate( 
     infra_6cat_long = case_when(
-      ### deal with westview drive---- 
+      
+      ### handle westview drive----- 
       #For this unusual one, we have to set it to a bike lane AFTER the ribbon date, 
       #but before this date, it should be protected
       
@@ -1641,15 +1796,24 @@ bmap_edge_mo_pre_f_nogeo =  lookup_bmap_edge_mo %>%
       project_westview_protected_temporary  == 1 &
         study_month >= ribbon_study_month ~ "bike_lane_conventional",
       
+      ### clifton corridor--------
+      #before the ribbon date, it's a sharrow, after a conventional bike lane
+      project_clifton_n_decatur_to_e_row_before_201708==1 &
+        study_month <ribbon_study_month ~ "sharrow",
+      project_clifton_n_decatur_to_e_row_before_201708==1 &
+        study_month >=ribbon_study_month ~ "bike_lane_conventional",
+      
+      
       ### First, those that do not vary over time. Set them to what they are.--------------------
-      #I coded a few as having a negative ribbon_study_month, intended to simply mean that it opened
-      #before the study
+      #I coded a few as having a negative ribbon_study_month, 
+      #intended to simply mean that it opened before the study
       
       ribbon_study_month < 3 ~ infra_6cat_none, #the earliest is 3, so this will set it to what it is.
       #if infrastructure is present, but there is NO opening date,
       #then I must assume that the opening date preceded the study period, so
       #Update 6/2/21 I thought this was giving me an issue, but this would have captured it here.
-      is.na(ribbon_study_month)==TRUE ~ infra_6cat_none, #it just is what it if no noted date. otherwise.
+      #it just is what it if no noted date. otherwise.
+      is.na(ribbon_study_month)==TRUE ~ infra_6cat_none,
       
       #--update 10/26 be more specific here to avoid miscoding the eastside trail----###
       #if it's the beltline, allow for it to be unpaved before the ribbon date.
@@ -1846,7 +2010,9 @@ lookup_edge_mo_infra_nogeo = bmap_edge_mo_pre_f_nogeo %>%
   dplyr::select(edge_id, infra_6cat_long, infra_6cat_long_legend_nodirt, study_month) %>% 
   as_tibble()
 
+setwd(here("data-processed"))
 save(lookup_edge_mo_infra_nogeo, file = "lookup_edge_mo_infra_nogeo.RData")
+
 
 # a version with geometry and ribbon_after_study needed for code in aim1_1_hex_covariates
 #changed because it was so similar to above.
@@ -1864,6 +2030,25 @@ lookup_edge_mo_infra_6_dummy_nogeo = lookup_edge_mo_infra_6_dummy_geo %>%
   as_tibble()
 save(lookup_edge_mo_infra_6_dummy_nogeo, file = "lookup_edge_mo_infra_6_dummy_nogeo.RData")
 
+## Lookup infra_6_dummy with main variable-------
+#This can be done without the edge-id - a smaller look-up table
+load("bmap_edge_mo_pre_f_nogeo.RData")
+names(bmap_edge_mo_pre_f_nogeo)
+lookup_infra_6_dummy_infra_6cat_long=bmap_edge_mo_pre_f_nogeo %>% 
+  dplyr::select(starts_with("infra")) %>% 
+  distinct(infra_6cat_long,
+           infra_6_dummy_1_trail_p, 
+           infra_6_dummy_2_lane_p,
+           infra_6_dummy_3_lane_b,
+           infra_6_dummy_4_lane_c,
+           infra_6_dummy_5_sharrow,
+           infra_6_dummy_6_trail_d
+           )
+
+lookup_infra_6_dummy_infra_6cat_long
+save(lookup_infra_6_dummy_infra_6cat_long, file="lookup_infra_6_dummy_infra_6cat_long.RData")
+
+names(lookup_edge_mo_infra_6_dummy_nogeo)
 ### lookup infra edge - last study month----------
 #A static look-up table to check what edges ever have infra. Use 23
 lookup_edge_infra_study_mo_23 = lookup_edge_mo_infra_nogeo %>% 
@@ -1921,11 +2106,13 @@ lookup_infra_ordered = lookup_infra_abbrev_ordered %>%
   arrange(infra_ordered)
 
 save(lookup_infra_ordered, file = "lookup_infra_ordered.RData")
+load("lookup_infra_ordered.RData")
+lookup_infra_ordered_no_number=
 ### lookup for table 1 of infra ------
-lookup_infra_table_order  = bmap_edge_mo_pre_f_nogeo %>% 
-  group_by(infra_6cat_long) %>% 
-  summarise(n=n()) %>% 
-  ungroup() %>% 
+load("bmap_edge_mo_pre_f_nogeo.RData")
+
+lookup_infra_table_no  = bmap_edge_mo_pre_f_nogeo %>% 
+  distinct(infra_6cat_long) %>% 
   mutate(
     infra_table_no = case_when(
       #      infra_6cat_long=="off_street_trail_dirt" ~ 1,
@@ -1936,12 +2123,18 @@ lookup_infra_table_order  = bmap_edge_mo_pre_f_nogeo %>%
       infra_6cat_long=="sharrow" ~ 5,
       infra_6cat_long=="none" ~ 6
     )
-  ) %>% 
-  dplyr::select(-n)
+  )
 
+lookup_infra_table_no
+save(lookup_infra_table_no, file = "lookup_infra_table_no.RData")
+lookup_infra_table_no %>% 
+  arrange(infra_table_no)
 
-save(lookup_infra_table_order, file = "lookup_infra_table_order.RData")
-
+names(bmap_edge_mo_pre_f_nogeo)
+# look up infra_
+#infra_6cat_long is the variable I use most often everywhere, so I'd like
+# a simple lookup between that var and infra_6cat_none_abbrev,
+#which has the tidiest notation
 
 ## CHANGE IN INFRASTRUCTURE LENGTH over the study period (aim 1)--------
 #again, we can use this to see where infra changed the most and
@@ -2305,7 +2498,6 @@ lookup_infra_6cat_none_abbrev = bmap_edge_join_wrangle_nogeo %>%
 
 save(lookup_infra_6cat_none_abbrev, file = "lookup_infra_6cat_none_abbrev.RData")
 
-
 ### lookup important stuff but length------------------------
 #load(file = "bmap_edge_join_wrangle_pre_long_geo.RData")
 #note this is a little confusing because it actually includes some variables from the
@@ -2334,7 +2526,8 @@ lookup_edge_id_import_vars_but_length = bmap_edge_join_wrangle_nogeo %>%
     
   ) 
 
-save(lookup_edge_id_import_vars_but_length, file = "lookup_edge_id_import_vars_but_length.RData")
+save(lookup_edge_id_import_vars_but_length, 
+     file = "lookup_edge_id_import_vars_but_length.RData")
 
 # FINAL FINAL LONGITUDINAL BASEMAP ---------------------------------------
 library(tidyverse)
@@ -2598,6 +2791,128 @@ save(bmap_diss_a1_corrected_geo, file = "bmap_diss_a1_corrected_geo.RData")
 
 #For the buffer areas, don't worry about it, as it's almost the exact same.
 
+## Map of all infrastructure, month 23-------
+table(lookup_edge_mo_infra_nogeo$infra_6cat_long)
+library(viridis)
+lookup_edge_mo_infra_nogeo %>% 
+  filter(study_month ==23) %>% #note clifton changed as expected!
+#  filter(study_month ==1) %>%#check if clifton changed as expected 
+  left_join(lookup_bmap_edge_geo, by = "edge_id") %>% 
+  left_join(lookup_infra_exclude_for_length_nogeo, by = "edge_id") %>% 
+  left_join(lookup_edge_osm_name, by = "edge_id") %>% 
+  filter(infra_6cat_long!="none") %>% 
+#  filter(infra_exclude_for_length==0) %>% 
+  st_as_sf() %>% 
+  mapview(
+    zcol="infra_6cat_long",
+    color = turbo(n=n_distinct(lookup_edge_mo_infra_nogeo$infra_6cat_long))
+  )
+
+## check on clifton------
+table(lookup_edge_mo_infra_nogeo$infra_6cat_long)
+load("emory_point_geo_sf_2mi.RData")
+lookup_edge_mo_infra_nogeo %>% 
+  filter(study_month ==23) %>% 
+  left_join(lookup_bmap_edge_geo, by = "edge_id") %>% 
+  left_join(lookup_infra_exclude_for_length_nogeo, by = "edge_id") %>% 
+  left_join(lookup_edge_osm_name, by = "edge_id") %>% 
+  st_as_sf() %>% 
+  st_intersection(emory_point_geo_sf_2mi) %>% 
+  mapview(zcol="infra_6cat_long")
+
+## Check on Marietta St----
+load("five_points_geo_sf_2mi.RData")
+# lookup_edge_mo_infra_nogeo %>% 
+#   filter(study_month ==23) %>% 
+#   left_join(lookup_bmap_edge_geo, by = "edge_id") %>% 
+#   left_join(lookup_infra_exclude_for_length_nogeo, by = "edge_id") %>% 
+#   left_join(lookup_edge_osm_name, by = "edge_id") %>% 
+#   st_as_sf() %>% 
+#   st_intersection(five_points_geo_sf_2mi) %>% 
+#   mapview(
+#     zcol="infra_6cat_long",
+#   color = turbo(
+#             n=n_distinct(lookup_edge_mo_infra_nogeo$infra_6cat_long)))
+#Good - coded correctly as none.
+
+#where are these?
+#        1129304,
+#1129303 
+#oh, okay, just a sidwalk.
+lookup_edge_mo_infra_nogeo %>% 
+  filter(study_month ==23) %>% 
+  left_join(lookup_bmap_edge_geo, by = "edge_id") %>% 
+  st_as_sf() %>% 
+  filter(edge_id=="1129304"|edge_id=="1129303") %>% 
+  mapview()
+
+## Check on Buckhead lanes-------
+#Looking at Pharr road, specifically June 1, 2023
+load("Lenox_Square_geo_sf_ft_2.5mi.RData")
+# lookup_edge_mo_infra_nogeo %>% 
+#   filter(study_month ==23) %>% 
+#   left_join(lookup_bmap_edge_geo, by = "edge_id") %>% 
+#   left_join(lookup_infra_exclude_for_length_nogeo, by = "edge_id") %>% 
+#   left_join(lookup_edge_osm_name, by = "edge_id") %>% 
+#   st_as_sf() %>% 
+#   st_intersection(Lenox_Square_geo_sf_ft_2.5mi) %>% 
+#   mapview(
+#     zcol="infra_6cat_long",
+#   color = turbo(n=n_distinct(lookup_edge_mo_infra_nogeo$infra_6cat_long))
+#   )
+
+#W Paces Ferry looks good - part sharrow and part conventional bike lane. 
+#Leave it.
+
+## Check west buckhead---------
+# load("underwood_hills_geo_sf_2mi.RData")
+# lookup_edge_mo_infra_nogeo %>% 
+#   filter(study_month ==23) %>% 
+#   left_join(lookup_bmap_edge_geo, by = "edge_id") %>% 
+#   left_join(lookup_infra_exclude_for_length_nogeo, by = "edge_id") %>% 
+#   left_join(lookup_edge_osm_name, by = "edge_id") %>% 
+#   st_as_sf() %>% 
+#   st_intersection(underwood_hills_geo_sf_2mi) %>% 
+#   mapview(
+#     zcol="infra_6cat_long",
+#     color = turbo(n=n_distinct(lookup_edge_mo_infra_nogeo$infra_6cat_long))
+#   )
+
+
+## Check Bankhead-------
+#Joseph E Boone Blvd
+#See comments in 
+#scripts/summer-2016-bike-study/wrangle-bike-infra-summer-2016.R
+# lookup_edge_mo_infra_nogeo %>% 
+#   filter(study_month ==23) %>% 
+#   left_join(lookup_bmap_edge_geo, by = "edge_id") %>% 
+#   left_join(lookup_infra_exclude_for_length_nogeo, by = "edge_id") %>% 
+#   left_join(lookup_edge_osm_name, by = "edge_id") %>% 
+#   st_as_sf() %>% 
+#   st_intersection(bankhead_geo_sf_2mi) %>% 
+#   mapview(
+#     zcol="infra_6cat_long",
+#     color = turbo(n=n_distinct(lookup_edge_mo_infra_nogeo$infra_6cat_long))
+#   )
+
+# Check downtown protected bike lanes------
+load("five_points_geo_sf_2mi.RData")
+lookup_edge_mo_infra_nogeo %>% 
+  filter(study_month ==23) %>% 
+  left_join(lookup_bmap_edge_geo, by = "edge_id") %>% 
+  left_join(lookup_infra_exclude_for_length_nogeo, by = "edge_id") %>% 
+  left_join(lookup_edge_osm_name, by = "edge_id") %>% 
+  st_as_sf() %>% 
+  st_intersection(five_points_geo_sf_2mi) %>% 
+  mapview(
+    zcol="infra_6cat_long",
+    color = turbo(
+      n=n_distinct(lookup_edge_mo_infra_nogeo$infra_6cat_long)
+            )
+  )
+
+
+
 # Define buffers for aim 1----------------------
 bmap_edge_join_wrangle_nogeo %>% 
   filter(diss_a1_eval==1) %>%   
@@ -2614,7 +2929,7 @@ bmap_edge_join_wrangle_nogeo %>%
 #conver to feet, create buffer, and then convert back to 4326
 bmap_diss_a1_any_buff_1_mi =  bmap_edge_join_wrangle %>% 
   filter(infra_exclude_for_length==0) %>%  #important to keep wst correct
-#  filter(diss_a1_eval==1) %>%   
+  #  filter(diss_a1_eval==1) %>%   
   filter(diss_a1_any==1) %>%
   group_by(diss_a1_any_name_section_short) %>% 
   summarise(length= sum(length_m, na.rm=TRUE)) %>% #doesn't matter what, just pick something
@@ -2658,6 +2973,8 @@ save(bmap_diss_a1_any_buff_half_mi, file = "bmap_diss_a1_any_buff_half_mi.RData"
 mapview(
   bmap_diss_a1_any_buff_half_mi, 
   zcol = "diss_a1_any_name_section_short",
-  col.regions = rainbow(n=n_distinct(bmap_diss_a1_any_buff_half_mi$diss_a1_any_name_section_short)))
+  col.regions = rainbow(
+    n=n_distinct(bmap_diss_a1_any_buff_half_mi$diss_a1_any_name_section_short))
+)
 
 

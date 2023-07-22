@@ -1197,7 +1197,12 @@ inters_w_itself_tertiary = id_list_tertiary %>%
 
 save(inters_w_itself_tertiary, file = "inters_w_itself_tertiary.RData")
 inters_w_itself_tertiary_union = inters_w_itself_tertiary %>% 
-  st_union() %>% 
+  #June 3rd, 2023 changed this to group_by() summarise instead
+  mutate(dummy=1) %>% 
+  group_by(dummy) %>% 
+  summarise(n=n()) %>% 
+  ungroup() %>% 
+  dplyr::select(-dummy,-n) %>% 
   st_sf() %>% 
   st_buffer(20) %>%   
   st_transform(4326) %>% 
@@ -1205,6 +1210,7 @@ inters_w_itself_tertiary_union = inters_w_itself_tertiary %>%
     intersects_highway_tertiary = 1,
     intersects_self = 1
   )
+inters_w_itself_tertiary_union %>% mapview()
 save(inters_w_itself_tertiary_union, file = "inters_w_itself_tertiary_union.RData")
 
 ## Residential with itself----------
@@ -1258,7 +1264,7 @@ residential_start_time
 # save(inters_w_itself_residential, file = "inters_w_itself_residential.RData")
 
 #do not load this if you run it above. otherwise, do.
-load(file = "inters_w_itself_residential.RData") 
+load(file = "inters_w_itself_residential.RData")
 inters_w_itself_residential_union = inters_w_itself_residential %>% 
   st_sf() %>% 
   st_buffer(10) %>%   
@@ -1268,8 +1274,9 @@ inters_w_itself_residential_union = inters_w_itself_residential %>%
     intersects_self = 1
   )
 
+#works fine without the group-by-summarise re-code here
 save(inters_w_itself_residential_union, file = "inters_w_itself_residential_union.RData")
-# mapview(inters_w_itself_residential_union)
+#mapview(inters_w_itself_residential_union)
 
 
 ## Service streets with themselves-------
@@ -1833,7 +1840,8 @@ inters_all_union_both_primary = inters_all_union_both %>%
   mutate(osm_name_highway_combo_id_most_major = osm_name_highway_combo_id) %>% 
   dplyr::select(-osm_name_highway_combo_id)
 
-table(inters_all_union_both_primary$osm_name_highway_combo_id_most_major)# great. that worked.
+table(inters_all_union_both_primary$osm_name_highway_combo_id_most_major)
+## great. that worked.
 
 #secondary
 table(bmap_union_wrangle$highway_9cat)
@@ -1848,7 +1856,7 @@ inters_all_union_both_secondary = inters_all_union_both %>%
   mutate(osm_name_highway_combo_id_most_major = osm_name_highway_combo_id) %>% 
   dplyr::select(-osm_name_highway_combo_id)
 
-table(inters_all_union_both_secondary$osm_name_highway_combo_id_most_major)# great. that worked.
+table(inters_all_union_both_secondary$osm_name_highway_combo_id_most_major)
 
 #tertiary
 table(bmap_union_wrangle$highway_9cat)
@@ -1965,7 +1973,8 @@ names(inters_final)
 #9/2/22 a few more b/c of a couple new piedmont park trails picke dup
 
 #a no-geo version
-inters_final_nogeo = inters_final %>% st_set_geometry(NULL)
+inters_final_nogeo = inters_final %>% 
+  st_set_geometry(NULL)
 save(inters_final_nogeo, file = "inters_final_nogeo.RData")
 
 table(inters_final$intersects_highway_most_major_6cat)
@@ -1999,7 +2008,8 @@ lookup_inters_group_id = inters_final_nogeo %>%
   as_tibble()
 save(lookup_inters_group_id, file = "lookup_inters_group_id.RData")
 ## lookup most major highway category---------
-#this is included in the below as well, but I'm including this in case I only want these variables,
+#this is included in the below as well, 
+#but I'm including this in case I only want these variables,
 #specifically.
 names(inters_final_nogeo)
 lookup_inters_highway_most_major = inters_final_nogeo %>% 
