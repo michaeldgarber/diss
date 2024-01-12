@@ -1,4 +1,4 @@
-#-------Load Packages-----########
+#-------Load Packages-----------------
 library(sf)
 library(tidyverse)
 library(ggmap) #note you register the google key here: 
@@ -9,7 +9,8 @@ library(RColorBrewer)
 library(here) #updated 12/16/21 to add everything into the main analysis data folder and not the buffers
 here()
 
-# Geocode Monroe and Ponce intersection and create buffers of varying sizes----------    ####
+# Geocoding-----------
+## Monroe and Ponce intersection and create buffers of varying sizes----------    
 
 #some things I'm doing throughout: 
 #making versions called monpon_ and mp_ in case I load one vs the other in spots
@@ -102,7 +103,7 @@ save(mp_sf_13mi, file = "mp_sf_13mi.RData")
 
 
 #-------------------------------------------------------------------#
-# Geocode Lenox and create buffers    ####
+# Geocode Lenox and create buffers--------####
 #-------------------------------------------------------------------#
 #the purpose of this is to more easily investigate my
 #OSM additions to Path 400
@@ -386,6 +387,8 @@ save(morningside_nature_pres_geo_sf, file = "morningside_nature_pres_geo_sf.RDat
 save(morningside_nature_pres_geo_sf_1mi, file = "morningside_nature_pres_geo_sf_1mi.RData")
 save(morningside_nature_pres_geo_sf_2mi, file = "morningside_nature_pres_geo_sf_2mi.RData")
 
+# Orme Park-----------
+
 #back gnard------#######
 names(all_h_osm_wrangle_both_geo)
 back_gnard_sf_1mi =all_h_osm_wrangle_both_geo %>% 
@@ -652,7 +655,7 @@ save(goldsboro_park_geo_sf_2mi, file = "goldsboro_park_geo_sf_2mi.RData")
 save(goldsboro_park_geo_sf_halfmi, file = "goldsboro_park_geo_sf_halfmi.RData")
 
 
-#----Geocode GPS coordinates along the Beltline and other bridges over off-street trails---########
+#----The Beltline and other bridges over off-street trails---########
 trail_p_bridges = data.table::data.table(
   bridge_name = c("beltline_north"),
   lat = c(33.773348),
@@ -665,7 +668,179 @@ trail_p_bridges = data.table::data.table(
 trail_p_bridges %>% mapview()
 mapview(trail_p_bridges)
 
+# Emory Point-------
+emory_point = as_tibble("Emory Point, Atlanta, GA") 
+emory_point2 = emory_point %>% 
+  rename(address = value) #rename the variable so it has a name
+emory_point_geo_sf = emory_point2 %>% 
+  mutate_geocode(address, force = TRUE) %>% 
+  st_as_sf(coords = c("lon", "lat"),crs = 4326) %>% 
+  st_transform("+proj=tmerc +lat_0=30 +lon_0=-84.16666666666667 +k=0.9999 +x_0=699999.9999999999
+               +y_0=0 +datum=NAD83 +units=us-ft +no_defs +ellps=GRS80 +towgs84=0,0,0") %>%
+  mutate(geocoded_name = "emory_point")
+
+#mapview(emory_point_geo_sf)
+emory_point_geo_sf_1mi =  emory_point_geo_sf %>%
+  st_buffer(5280) %>%
+  mutate(radius_name = "1-mi radius, emory_point") %>%
+  st_transform(4326)
+
+emory_point_geo_sf_2mi =  emory_point_geo_sf %>%
+  st_buffer(10560) %>%
+  mutate(radius_name = "1-mi radius, emory_point") %>%
+  st_transform(4326)
 
 
+mapview(emory_point_geo_sf_1mi)
+mapview(emory_point_geo_sf_2mi)
+save(emory_point_geo_sf, file = "emory_point_geo_sf.RData")
+save(emory_point_geo_sf_1mi, file = "emory_point_geo_sf_1mi.RData")
+save(emory_point_geo_sf_2mi, file = "emory_point_geo_sf_2mi.RData")
 
+#check west buckhead -------
+#Let's geocode underwood hills park
+underwood_hills = as_tibble("Underwood Hills Park, Atlanta, GA") 
+underwood_hills2 = underwood_hills %>% 
+  rename(address = value) #rename the variable so it has a name
+underwood_hills_geo_sf = underwood_hills2 %>% 
+  mutate_geocode(address, force = TRUE) %>% 
+  st_as_sf(coords = c("lon", "lat"),crs = 4326) %>% 
+  st_transform("+proj=tmerc +lat_0=30 +lon_0=-84.16666666666667 +k=0.9999 +x_0=699999.9999999999
+               +y_0=0 +datum=NAD83 +units=us-ft +no_defs +ellps=GRS80 +towgs84=0,0,0") %>%
+  mutate(geocoded_name = "underwood_hills")
+
+#mapview(underwood_hills_geo_sf)
+underwood_hills_geo_sf_1mi =  underwood_hills_geo_sf %>%
+  st_buffer(5280) %>%
+  mutate(radius_name = "1-mi radius, underwood_hills") %>%
+  st_transform(4326)
+
+underwood_hills_geo_sf_2mi =  underwood_hills_geo_sf %>%
+  st_buffer(10560) %>%
+  mutate(radius_name = "1-mi radius, underwood_hills") %>%
+  st_transform(4326)
+
+
+mapview(underwood_hills_geo_sf_1mi)
+mapview(underwood_hills_geo_sf_2mi)
+save(underwood_hills_geo_sf, file = "underwood_hills_geo_sf.RData")
+save(underwood_hills_geo_sf_1mi, file = "underwood_hills_geo_sf_1mi.RData")
+save(underwood_hills_geo_sf_2mi, file = "underwood_hills_geo_sf_2mi.RData")
+
+
+# Bankhead----
+bankhead = as_tibble("Bankhead, Atlanta, GA") 
+bankhead2 = bankhead %>% 
+  rename(address = value) #rename the variable so it has a name
+bankhead_geo_sf = bankhead2 %>% 
+  mutate_geocode(address, force = TRUE) %>% 
+  st_as_sf(coords = c("lon", "lat"),crs = 4326) %>% 
+  st_transform("+proj=tmerc +lat_0=30 +lon_0=-84.16666666666667 +k=0.9999 +x_0=699999.9999999999
+               +y_0=0 +datum=NAD83 +units=us-ft +no_defs +ellps=GRS80 +towgs84=0,0,0") %>%
+  mutate(geocoded_name = "bankhead")
+
+#mapview(bankhead_geo_sf)
+bankhead_geo_sf_1mi =  bankhead_geo_sf %>%
+  st_buffer(5280) %>%
+  mutate(radius_name = "1-mi radius, bankhead") %>%
+  st_transform(4326)
+
+bankhead_geo_sf_2mi =  bankhead_geo_sf %>%
+  st_buffer(10560) %>%
+  mutate(radius_name = "1-mi radius, bankhead") %>%
+  st_transform(4326)
+
+
+mapview(bankhead_geo_sf_1mi)
+mapview(bankhead_geo_sf_2mi)
+save(bankhead_geo_sf, file = "bankhead_geo_sf.RData")
+save(bankhead_geo_sf_1mi, file = "bankhead_geo_sf_1mi.RData")
+save(bankhead_geo_sf_2mi, file = "bankhead_geo_sf_2mi.RData")
+
+# Decatur-----
+decatur = as_tibble("Decatur, GA") 
+decatur2 = decatur %>% 
+  rename(address = value) #rename the variable so it has a name
+decatur_geo_sf = decatur2 %>% 
+  mutate_geocode(address, force = TRUE) %>% 
+  st_as_sf(coords = c("lon", "lat"),crs = 4326) %>% 
+  st_transform("+proj=tmerc +lat_0=30 +lon_0=-84.16666666666667 +k=0.9999 +x_0=699999.9999999999
+               +y_0=0 +datum=NAD83 +units=us-ft +no_defs +ellps=GRS80 +towgs84=0,0,0") %>%
+  mutate(geocoded_name = "decatur")
+
+#mapview(decatur_geo_sf)
+decatur_geo_sf_1mi =  decatur_geo_sf %>%
+  st_buffer(5280) %>%
+  mutate(radius_name = "1-mi radius, decatur") %>%
+  st_transform(4326)
+
+decatur_geo_sf_2mi =  decatur_geo_sf %>%
+  st_buffer(10560) %>%
+  mutate(radius_name = "1-mi radius, decatur") %>%
+  st_transform(4326)
+
+
+mapview(decatur_geo_sf_1mi)
+mapview(decatur_geo_sf_2mi)
+save(decatur_geo_sf, file = "decatur_geo_sf.RData")
+save(decatur_geo_sf_1mi, file = "decatur_geo_sf_1mi.RData")
+save(decatur_geo_sf_2mi, file = "decatur_geo_sf_2mi.RData")
+
+# East Lake--------
+east_lake = as_tibble("East Lake, Atlanta, GA") 
+east_lake2 = east_lake %>% 
+  rename(address = value) #rename the variable so it has a name
+east_lake_geo_sf = east_lake2 %>% 
+  mutate_geocode(address, force = TRUE) %>% 
+  st_as_sf(coords = c("lon", "lat"),crs = 4326) %>% 
+  st_transform("+proj=tmerc +lat_0=30 +lon_0=-84.16666666666667 +k=0.9999 +x_0=699999.9999999999
+               +y_0=0 +datum=NAD83 +units=us-ft +no_defs +ellps=GRS80 +towgs84=0,0,0") %>%
+  mutate(geocoded_name = "east_lake")
+
+#mapview(east_lake_geo_sf)
+east_lake_geo_sf_1mi =  east_lake_geo_sf %>%
+  st_buffer(5280) %>%
+  mutate(radius_name = "1-mi radius, east_lake") %>%
+  st_transform(4326)
+
+east_lake_geo_sf_2mi =  east_lake_geo_sf %>%
+  st_buffer(10560) %>%
+  mutate(radius_name = "1-mi radius, east_lake") %>%
+  st_transform(4326)
+
+
+mapview(east_lake_geo_sf_1mi)
+mapview(east_lake_geo_sf_2mi)
+save(east_lake_geo_sf, file = "east_lake_geo_sf.RData")
+save(east_lake_geo_sf_1mi, file = "east_lake_geo_sf_1mi.RData")
+save(east_lake_geo_sf_2mi, file = "east_lake_geo_sf_2mi.RData")
+
+## Edgewood, Atlanta-------
+edgewood = as_tibble("Edgewood, Atlanta, GA") 
+edgewood2 = edgewood %>% 
+  rename(address = value) #rename the variable so it has a name
+edgewood_geo_sf = edgewood2 %>% 
+  mutate_geocode(address, force = TRUE) %>% 
+  st_as_sf(coords = c("lon", "lat"),crs = 4326) %>% 
+  st_transform("+proj=tmerc +lat_0=30 +lon_0=-84.16666666666667 +k=0.9999 +x_0=699999.9999999999
+               +y_0=0 +datum=NAD83 +units=us-ft +no_defs +ellps=GRS80 +towgs84=0,0,0") %>%
+  mutate(geocoded_name = "edgewood")
+
+#mapview(edgewood_geo_sf)
+edgewood_geo_sf_1mi =  edgewood_geo_sf %>%
+  st_buffer(5280) %>%
+  mutate(radius_name = "1-mi radius, edgewood") %>%
+  st_transform(4326)
+
+edgewood_geo_sf_2mi =  edgewood_geo_sf %>%
+  st_buffer(10560) %>%
+  mutate(radius_name = "1-mi radius, edgewood") %>%
+  st_transform(4326)
+
+
+mapview(edgewood_geo_sf_1mi)
+mapview(edgewood_geo_sf_2mi)
+save(edgewood_geo_sf, file = "edgewood_geo_sf.RData")
+save(edgewood_geo_sf_1mi, file = "edgewood_geo_sf_1mi.RData")
+save(edgewood_geo_sf_2mi, file = "edgewood_geo_sf_2mi.RData")
 

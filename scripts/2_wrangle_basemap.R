@@ -5,7 +5,7 @@
 #12/5/21
 #I separated this code from the other code which merges the bmap data with the OSM data.
 #that code is now titled filename:2_0_wrangle_bmap_merge_osm_edge
-#April 12 2022 - you should go through this code and organize it using the rmarkdown-style headers
+#April 12 2022 - Go through this code and organize it using the rmarkdown-style headers
 
 library(tidyverse)
 library(sf)
@@ -39,13 +39,14 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
   left_join(lookup_edge_id_xy_coord, by = "edge_id") %>% 
   
   #12/7/21 link in the diss infra data that you've updated.
-  #the main purpose of this is to get the ribbon date approx so you can define open date for the aim 1 infrastructure
+  #the main purpose of this is to get the ribbon date approx so you can 
+  #define open date for the aim 1 infrastructure
   mutate(
     #measure length of each feature
     #note, we also have a length measurement for the osm original file
     length_m = as.numeric(st_length(geometry)),
     
-    #10/5/ decision to get rid of the stupid mdg code. Just note throughout that
+    #10/5  decision to get rid of the mdg underscore. Just note throughout that
     #all of the geometry have been re-measured by me
     length_km = as.numeric(length_m)/1000, 
     length_mi = length_km*0.621371     ,
@@ -58,8 +59,8 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
       TRUE ~ 0
     ),
     
-   #Luckie St below Ivan Allen is called a residential road. That seems weird. Consider
-    #recoding to tertiary
+   #Luckie St below Ivan Allen is called a residential road. That seems odd. 
+   #Consider recoding to tertiary
     project_luckie_st_residential =case_when( 
       osm_id_osm == 41374791 ~ 1,
       osm_id_osm == 561083964 ~ 1),
@@ -71,7 +72,7 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
       osm_id_strava ==  414497329 ~  "tertiary", 
       osm_id_strava ==  414497333 ~  "tertiary",
       
-      #you know what, Mike. it might be perceived as dishonest. just leave it as is.
+      #actually, leave it as is for reproducibility
       #      project_luckie_st_residential==1 ~ "tertiary",
       TRUE ~ highway,
     ),
@@ -116,10 +117,12 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
     ),
     
     #another one for easier table making, where trunk is included in primary
-    #Update July 26, 2022: to make consistent with the intersection version created in 2_1_base...,
+    #Update July 26, 2022: to make consistent with the intersection version 
+   #created in 2_1_base...,
     #remove "road" from the category name
     highway_5cat_ordered_collapse_trunk = case_when(
-      highway_9cat == "trunk road" ~ "1-trunk or primary", #i.e., it used to be 1-trunk or primary road
+      #i.e., it used to be 1-trunk or primary road
+      highway_9cat == "trunk road" ~ "1-trunk or primary", 
       highway_9cat == "primary road" ~ "1-trunk or primary",
       highway_9cat == "secondary road" ~ "2-secondary",
       highway_9cat == "tertiary road" ~ "3-tertiary",
@@ -129,7 +132,8 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
       highway_9cat == "living street" ~"5-unclassified or service"
     ),
     
-    #update 11/2/2020 - a category that collapsed primary w secondary and tertiary with residential
+    #update 11/2/2020 - a category that collapsed primary w secondary and tertiary with 
+    #residential
     #for aim 3 stratified analysis
     highway_collapsed_2_2_ordered =
       case_when(
@@ -168,7 +172,8 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
     
     #these should also change since they depend on those above
     major_or_res_highway_6cat = case_when(
-      highway_9cat == "trunk road" ~ "primary-tertiary road", #(I'm still calling it primary-tertiary for a2 posterity)
+      #(I'm still calling it primary-tertiary for a2 posterity)
+      highway_9cat == "trunk road" ~ "primary-tertiary road", 
       highway_6cat == "primary-tertiary road" ~ "primary-tertiary road",
       highway_6cat == "residential road"~ "residential road",
       TRUE ~ highway_6cat),
@@ -191,7 +196,8 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
     
     ### westview drive sections that were converted back from protected bike lane to conventional--------
     #Note, I'm decidi`ng to do this by edge_id in this code rather than by osm_id
-    #in the 1_wrangle_osm code because the edge ids are more precise. the osm-id doesn't stop/start where I need it to
+    #in the 1_wrangle_osm code because the edge ids are more precise. 
+   #The osm-id doesn't stop/start where I need it to
     #so this will need to be changed in the longitudinal definition
     project_westview_protected_temporary = case_when(
       edge_id %in% c( 1183781, 1183780, 1183779, 1183778, 1183776, 1183775, 1183777 ) ~ 1),
@@ -284,7 +290,6 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
    
     #### east lake buffered bike lanes------
     #Per Google Streetview 
-    #https://www.google.com/maps/@33.7657443,-84.3116656,3a,75y,179.11h,79.36t/data=!3m7!1e1!3m5!1s46XuDRnTzQwpZlWHsX9zjw!2e0!5s20171001T000000!7i13312!8i6656
     #the buffered lanes were there October 2017
     #In July 2015, they were conventional bike lanes (not applicable to this study)
     project_east_lake_buffered = case_when(
@@ -667,7 +672,8 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
     #fix the one westview drive section. call the ribbon date the date it changed from
     #protected bike lane to conventional bike lane (or nothing?)
     ribbon_date = case_when(
-      ribbon_date_missing == 1 ~lubridate::ymd(20170101), #so it works with the rest of the code. pick jan 1, 2017
+      #so it works with the rest of the code. pick jan 1, 2017
+      ribbon_date_missing == 1 ~lubridate::ymd(20170101), 
       
       #Per review of 2017 report or consistent with dissertation infrastructure
       #12/17/21 this is  where  the error came from...
@@ -699,7 +705,6 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
     ribbon_year = lubridate::year(ribbon_date),
     ribbon_month = lubridate::month(ribbon_date) + ribbon_month_after_or_same,
 
-    
     #and these - also repeated from the other code
     #a numeric variable that lines up with study month for easy subtraction
     ribbon_study_month = case_when(
@@ -1503,7 +1508,8 @@ group_id_max = bmap_edge_join_wrangle1 %>%
   st_set_geometry(NULL) %>% 
   mutate( dummy=1) %>% 
   group_by(dummy) %>%
-  summarise(group_id_max = max(osm_name_highway_combo_id, na.rm=TRUE)) %>% ungroup() %>% 
+  summarise(group_id_max = max(osm_name_highway_combo_id, na.rm=TRUE)) %>% 
+  ungroup() %>% 
   dplyr::select(group_id_max) %>% pull()
 
 n_groups = n_distinct(bmap_edge_join_group_miss_no$osm_name_highway_combo_id)
@@ -1991,8 +1997,7 @@ bmap_edge_mo_pre_f_nogeo =  lookup_bmap_edge_mo %>%
       expo_line_pct2==1~1,
       expo_line_mcd==1~1,
       TRUE ~ 0 
-    ),
-    
+    )  
     #update 12/30/21 I'm adding a variable
   ) %>% 
   #lastly, bring in the time-invariant variables again. should be faster this way
@@ -2107,7 +2112,7 @@ lookup_infra_ordered = lookup_infra_abbrev_ordered %>%
 
 save(lookup_infra_ordered, file = "lookup_infra_ordered.RData")
 load("lookup_infra_ordered.RData")
-lookup_infra_ordered_no_number=
+
 ### lookup for table 1 of infra ------
 load("bmap_edge_mo_pre_f_nogeo.RData")
 
@@ -2252,8 +2257,10 @@ edge_infra_change_a1_nogeo = bmap_edge_mo_pre_f_nogeo %>%
     diss_a1_any_name_group_short_late_add = case_when(
       #note that orme and united are really the same...so make them a group
       #I had initially grouped ormewood and united but I've actually ecided to leave them separate
-      #since united between boulevard and ormewood is just a sharrow so for aim 1 purposes, not worth it
-      diss_a1_late_add==1 &       grepl("Ivan Allen", osm_name_osm) ~ "lsl_gtp_iva", #adjacent to luckie st
+      #since united between boulevard and ormewood is just a sharrow 
+      #so for aim 1 purposes, not worth it
+      #adjacent to luckie st
+      diss_a1_late_add==1 &       grepl("Ivan Allen", osm_name_osm) ~ "lsl_gtp_iva", 
       #what about sylvan and lawton...very close to one another...
       TRUE ~ diss_a1_any_name_section_short_late_add #else it just takes the names above
     ),
@@ -2265,9 +2272,12 @@ edge_infra_change_a1_nogeo = bmap_edge_mo_pre_f_nogeo %>%
       diss_a1_any_name_section_short_late_add == "syl" ~ "conventional bike lane",
       diss_a1_any_name_section_short_late_add == "law" ~ "conventional bike lane",
       diss_a1_any_name_section_short_late_add == "col" ~ "conventional bike lane, and aug 2018",
-      diss_a1_any_name_section_short_late_add == "iva" ~ "a trail and early enough...should assess",
-       diss_a1_any_name_section_short_late_add == "uni" ~ "buffered bike lanes and summer 2018..pretty late",
-      diss_a1_any_name_section_short_late_add == "orm" ~ "buffered bike lanes and summer 2018..pretty late"
+      diss_a1_any_name_section_short_late_add == "iva" ~ 
+        "a trail and early enough...should assess",
+       diss_a1_any_name_section_short_late_add == "uni" ~ 
+        "buffered bike lanes and summer 2018..pretty late",
+      diss_a1_any_name_section_short_late_add == "orm" ~ 
+        "buffered bike lanes and summer 2018..pretty late"
     )
   ) %>% 
   #drop a few variables for easier linking to future datasets
@@ -2348,7 +2358,8 @@ bmap_edge_join_wrangle = bmap_edge_join_wrangle_pre_long_geo %>%
     ),
     #rename the grouped lsl-gtp-ivan allen
     diss_a1_any_name_group_short = case_when(
-      diss_a1_any_name_group_short == "lsl_gtp" ~ "lsl_gtp_iva", #if it was lsl-gtp before, set it to this.
+      #if it was lsl-gtp before, set it to this.
+      diss_a1_any_name_group_short == "lsl_gtp" ~ "lsl_gtp_iva", 
       diss_a1_any_name_group_short_late_add == "lsl_gtp_iva" ~ "lsl_gtp_iva",
       diss_a1_any_name_group_short_late_add == "orm" ~ "orm",
       diss_a1_any_name_group_short_late_add == "uni" ~ "uni",
@@ -2487,7 +2498,8 @@ table(lookup_diss_a1_any_name_group_short$diss_a1_eval_name_group_short_ordered)
 ### look up ribbon dates------------------------
 #both the ride version and the actual version...not sure if different
 lookup_edge_ribbon_date = bmap_edge_join_wrangle_nogeo %>% 
-  dplyr::select(edge_id, ribbon_date) 
+  dplyr::select(edge_id, ribbon_date)
+lookup_edge_ribbon_date
 names(lookup_edge_ribbon_date)
 save(lookup_edge_ribbon_date, file = "lookup_edge_ribbon_date.RData")
 
@@ -2606,7 +2618,8 @@ bmap_edge_mo_nogeo = bmap_edge_mo_pre_f_nogeo %>%
       ),
     
     #okay, now redefine the expo_line_eval
-    #note here we're just worried about those that we're assessing as a main exposure
+    #note here we're just worried about those 
+    #that we're assessing as a main exposure
     expo_line_eval = case_when(
       expo_line_lsl_gtp_iva==1~1,
       TRUE ~expo_line_eval) ,
@@ -2662,6 +2675,17 @@ bmap_edge_mo_nogeo = bmap_edge_mo_pre_f_nogeo %>%
 
 save(bmap_edge_mo_nogeo, file = "bmap_edge_mo_nogeo.RData")
 
+#October 18, 2023:
+#Export as .csv
+library(writexl)
+library(readr)
+setwd(here("data-processed"))
+#write_csv(bmap_edge_mo_nogeo,"bmap_edge_mo_nogeo.RData")
+
+#and save the geometry lookup (not time-varying) here:
+
+
+
 #------vars that need to be updated--------------##
 # expo_line_eval
 #expo_line_poss_conf
@@ -2695,7 +2719,8 @@ lookup_edge_mo_expo_line = bmap_edge_mo_nogeo %>%
   dplyr::select(edge_id, study_month, starts_with("expo_line"))
 save(lookup_edge_mo_expo_line, file = "lookup_edge_mo_expo_line.RData")
 ### dissertation aim 1 correct measurements and buffer area----------------
-#hmm, we're still not excluding the WST dirt area. must be because of the spatial join?
+#hmm, we're still not excluding the WST dirt area. 
+#Must be because of the spatial join?
 #so for this we're going to bring in a couple of things to fix it, just for the 
 #correct geometry.
 #Bring in
@@ -2793,13 +2818,18 @@ save(bmap_diss_a1_corrected_geo, file = "bmap_diss_a1_corrected_geo.RData")
 
 ## Map of all infrastructure, month 23-------
 table(lookup_edge_mo_infra_nogeo$infra_6cat_long)
+lookup_bmap_edge_geo %>% 
 library(viridis)
+
+lookup_edge_id_osm_id_osm
 lookup_edge_mo_infra_nogeo %>% 
   filter(study_month ==23) %>% #note clifton changed as expected!
 #  filter(study_month ==1) %>%#check if clifton changed as expected 
   left_join(lookup_bmap_edge_geo, by = "edge_id") %>% 
   left_join(lookup_infra_exclude_for_length_nogeo, by = "edge_id") %>% 
   left_join(lookup_edge_osm_name, by = "edge_id") %>% 
+  left_join(lookup_edge_ribbon_date,by="edge_id") %>% 
+  left_join(lookup_edge_id_osm_id_osm,by="edge_id") %>% 
   filter(infra_6cat_long!="none") %>% 
 #  filter(infra_exclude_for_length==0) %>% 
   st_as_sf() %>% 
@@ -2807,6 +2837,10 @@ lookup_edge_mo_infra_nogeo %>%
     zcol="infra_6cat_long",
     color = turbo(n=n_distinct(lookup_edge_mo_infra_nogeo$infra_6cat_long))
   )
+
+#Create infrastructure data for Reid-------
+# Update Jan 12, 2023: let's break this off into a separate code
+
 
 ## check on clifton------
 table(lookup_edge_mo_infra_nogeo$infra_6cat_long)
@@ -2927,6 +2961,8 @@ bmap_edge_join_wrangle_nogeo %>%
 # table(bmap_edge_join_wrangle$diss_a1_any_name_section_short)
 #4/12/22 I'm getting weird things where the st_buffer isn't working
 #conver to feet, create buffer, and then convert back to 4326
+setwd(here("data-processed"))
+load("bmap_edge_join_wrangle.RData")
 bmap_diss_a1_any_buff_1_mi =  bmap_edge_join_wrangle %>% 
   filter(infra_exclude_for_length==0) %>%  #important to keep wst correct
   #  filter(diss_a1_eval==1) %>%   

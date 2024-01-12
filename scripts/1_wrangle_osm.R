@@ -18,6 +18,7 @@ library(viridisLite)
 library(here) #update 12/16/21
 
 
+#Created ~/Dropbox/Work/General research/Dissertation/diss/scripts/0_import_prep_osm.R
 setwd(here("data-processed"))
 load(file = "all_highway_dupes_rid.RData") 
 
@@ -54,8 +55,10 @@ all_h_osm_wrangle_geo = all_highway_dupes_rid %>%
       #this one was coded as unclassified and should be residential
       osm_id_osm == 507013986 ~ "residential",
       
-      #this happens quite a bit. a protected cycletrack gets its own geometry (not coded as a road),
-      #so then when I want to classify it by roadway, I lose its roadway classification.
+      #this happens quite a bit. a protected cycletrack gets its own geometry 
+      #(not coded as a road),
+      #so then when I want to classify it by roadway, 
+      #I lose its roadway classification.
       
       grepl("Portman PATH", osm_name_osm) ~ "tertiary",
       grepl("Peachtree Center Cycle Track", osm_name_osm) ~ "tertiary",
@@ -169,7 +172,8 @@ all_h_osm_wrangle_geo = all_highway_dupes_rid %>%
     TRUE ~ "other"),
     
 
-  #add names to a few osm_ids so that they can be more dynamically classified by that nme
+  #add names to a few osm_ids so that they can be more dynamically 
+  #classified by that nme
   #below
     osm_name_osm = 
       case_when(
@@ -177,7 +181,6 @@ all_h_osm_wrangle_geo = all_highway_dupes_rid %>%
         osm_id_osm == 169957934 ~ "Freedom Park Connector",
         osm_id_osm == 24617423 ~ "Freedom Park Connector",
         osm_id_osm == 24617426 ~ "Freedom Park Connector",
-        
         osm_id_osm == 764043743 ~ "Atlanta BeltLine Eastside Trail",
         TRUE ~ osm_name_osm
       ),
@@ -212,11 +215,14 @@ all_h_osm_wrangle_geo = all_highway_dupes_rid %>%
   #Note, the search-term-based way would work, using osm_name_osm contains PATH Parkway
   #but to be more specific, I'm doing it this way
   project_tech_parkway = case_when(
-    osm_id_osm == 179237451 ~ 1,
-    osm_id_osm == 179237448 ~ 1,
-    osm_id_osm == 179238151 ~ 1 ,
-    TRUE ~0),
-  
+    osm_id_osm %in% c(
+      179237451,
+      179237448,
+      179238151,
+      526759934 #I missed this one - added June 1, 2023
+    ) ~ 1,
+  ),
+
   #annoyingly, this segment crosses North Ave. oh well, this will be your luckie st section.
   #Update 10/21/2020 - you update these downstream in the wrangle_basemap code.
   project_luckie_st_lane_protected = case_when( 
@@ -287,7 +293,8 @@ all_h_osm_wrangle_geo = all_highway_dupes_rid %>%
     TRUE ~0 #don't always have to use a 0, but it's helpful here
       ),
   
-  #this will pick up any of the paved sections, so excluding the dirt section in Piedmont Park
+  #this will pick up any of the paved sections, 
+  #so excluding the dirt section in Piedmont Park
   project_eastside_trail_paved = case_when(
     grepl("Atlanta BeltLine Eastside Trail", osm_name_osm) ~ 1 ,
     TRUE ~0),
@@ -457,6 +464,173 @@ all_h_osm_wrangle_geo = all_highway_dupes_rid %>%
     grepl("PATH400", osm_name_osm) ~ 1 
   ),
   
+  ## Clifton corridor - changed summer 2017--------
+  #https://news.emory.edu/stories/2016/06/er_clifton_streetscape/campus.html
+  #From that page:
+  #The Clifton Streetscape project will make travel to Emory facilities both 
+  #more efficient and more enjoyable, with improvements for vehicles, bicycles 
+  #and pedestrians.
+  
+  #An almost half-mile segment of Clifton Road will be resurfaced and widened, 
+  #and a bike lane will be added along the east side. A "sharrow," or shared bike-vehicular lane, 
+  #will remain on the west side of Clifton Road.
+  #  Completion of the Clifton Streetscape will coincide with the summer 2017 opening of the 
+  #new hospital wing.
+  #Before August 2017, these were sharrows
+  #After, there were some bike lanes and sharrows
+  project_clifton_n_decatur_to_e_row_before_201708=case_when(
+    #Before, they were just sharrows. After, there was a sharrow on the southbound
+    #side and a bike lane on the northbound.
+    #I can't accommodate both types of lanes in my data right now, so I'm going to 
+    #call it a bike lane after and a sharrow before.
+    #This project goes from N Decatur to Eagle Row
+    osm_id_osm %in% c(
+      28687906,# N Decatur to Uppergate Dr
+      80428422 #Uppergate to Eagle Row
+            )~ 1),
+  
+  #these are forever sharrows
+  project_clifton_e_row_to_emory_conf_hotel=case_when(
+    osm_id_osm%in% c(
+      40547249,# Just north of Haygood
+      95340819, #Michael St to Houston Mill
+      95340818# Houston Mill to Emory Conf Hotel
+    )~ 1),
+  
+  #Looks like as of Jul 2015 (before study),
+  #Clifton gets a bike lane westbound (Emory Point side)
+  #and keeps its sharrow eastbound (CDC side)
+  #This could be another example of terrible design in your discussion section.
+  #actually it's mostly a bike lane to Emory Point northeast bound
+  project_clifton_emory_conf_hotel_to_emory_point=case_when(
+    osm_id_osm %in% c(
+      #northwest of 1599 building - Emory Conf hotel
+      733656907,#north side of road
+      80428423, #south side of road
+      525755399# continuing west
+    )~ 1),
+  #This is mostly a sharrow but contains a bit of
+  #conventional bike lane on the eastern part east of CDC parkway.
+  #It will have to be fixed in the subsequent code.
+  project_clifton_emory_point_to_briarcliff=case_when(
+    osm_id_osm %in% c(
+      566526999
+    )~ 1),
+  
+  ## 10th (tenth) st protected bike lane-----
+  #June 1, 2023
+  #In my fixes, I seem to have lost part of the 10th st
+  #lane
+  project_10th_st_protected_lane=case_when(
+    osm_id_osm %in% c(
+      505912700,75359071
+    )~ 1),
+
+  ## Peachtree Center protected bike lane-----
+  #June 1, 2023 
+  #There was a crash that occurred on this cycle track,
+  #but it didn't get classified as occurring on it, 
+  #because there are two parallel segments.
+  #I need to classify everything as having occurred on
+  #the protected bike lane, and include one of the lines for length
+  #calling it east because there are two parallel features,
+  #and the one on the west is already coded as protected.
+  #I have to assume that all ridership occurring
+  #on these segments occurred in the pbl, as I've done for 10th St.
+  #I'm surprised I haven't done this yet.
+  project_peachtree_center_pbl_east=case_when(
+    osm_id_osm %in% c(
+      108618203,
+      595386368,
+      595386367,#added June 5th 2023
+      591623771,
+      630696899
+        )~1),
+  
+  ##Ferst Dr NW----------
+  #A missing conventional bike lane segment - Ferst Dr
+  #Noticing this June 1, 2023
+  projet_ferst_dr_nw_conv=case_when(
+    osm_id_osm %in% c(
+    9240894,
+    179238154,
+    525768628,#was coded as a sharrow
+    314113138,#was coded as a sharrow
+    526762112#this was coded as a sharrow. it's a conv. lane
+    )~1),
+  
+  project_ferst_dr_nw_sharrow=case_when(
+    osm_id_osm %in% c(
+    314113141,#this is a great sharrow
+    314113140,
+    179238153,#at the intersection a sharrow
+    278751254,#technically a sharrow here
+    525767405
+    )~1),
+  
+  ## Sharrows on Ponce and other in Decatur--------
+  #adding these June 3, 2023
+  project_sharrows_decatur=case_when(
+    #Ponce sharrows from E Trinity Place to
+    #Sam's Crossings
+    osm_id_osm %in% c(
+        85333205,
+        329993826,
+        80428429,
+        196664358,
+        569509214,
+        9181217,
+        730129063,
+        74846297,
+        43308963,
+        
+        #Sycamore Dr North of Ponce in Decatur had a sharrow
+        #Mar 2017
+        #Assuming all the way to Church
+        #June 3, 2023
+        9171974,
+        9171973,
+        77078502,
+        74837999,
+        630069543
+
+    )~1),
+  
+  ## Sharrows - southeast Atlanta---------
+  project_sharrows_cottage_grove_oakview_se=case_when(
+    osm_id_osm %in% c(
+      #June 3, 2023
+      #I checked Glendale. No sharrows.
+      #McDonough St has sharrows south of College
+      #at least south to Griffin Cir. Until the road
+      #name changes
+      #South McDonough St
+      9188301,
+      74927685,
+      74819491,
+      
+      #Cottage Grove Ave SE
+      #looks like sharrows added somewhere Late 2016
+      #early 2017
+      #And Oakview Rd SE as well got sharrows about the same
+      #time. Both visible in Oct 2017 Street View
+      9170117,
+      51297081,#Oakview
+      51297456,
+      51297464,
+      143309391
+    )~1),
+  
+  #I checked Carter Ave SE
+  
+  #Note I tried to add the missing section of the Trolley Line Trail
+  #near El Tesoro
+  #between Montgomery St Se and Anniston Ave SE,
+  #but the segment didn't appear in my basemap layer
+
+
+  
+
   ## Dirt trails (projects and groups)-------------------------------------
   #Ira B and Mason Mill Trails across Clairmont
   #Ira B and Mason Mill Trails
@@ -648,23 +822,27 @@ all_h_osm_wrangle_geo = all_highway_dupes_rid %>%
         grepl("Fernbank El", osm_name_osm) ~ 1 #Fernbank elementary trails
     ),
   
+
   ## Additional manual work October 2020--------------
   # MDG here is where the manual work is! early October 2020-----#
   
   ### Pre-existing infrastructure (aim 1)------------------------------------------
-  #My process here is to review PDFs and my older infrastructure file to see what was already there
+  #My process here is to review PDFs and my older infrastructure file to see 
+  #what was already there
   #to make sure it matches what the cities (Atlanta and Decatur) have
   
   #Begin with buffered bike lanes
   #Per Streetview, 2014 or earlier for almost all of it.
   #Just say 1/1/2016 for all of these and then can be more precise if needed thereafter,
   #but it's irrelevant for this project, since the point is it precedes the data.
-  #west of the home depot / whole foods plaza  / beltline to myrtle, then west of myrtle, it's conventional to juniper,
+  #west of the home depot / whole foods plaza  / beltline to myrtle, then west of myrtle, 
+  #it's conventional to juniper,
   #then it stops
   
   # project_ponce_lane_buff_pre2016 = case_when(
   #   
   # ),
+  #Note the above was moved to the 2_wrangle_basemap.R code
   
   ### classify off-street trail -  paved-----------------------
   #update 1/3/22 note these are fixed further down in 2_wrangle_basemap to be dichotomous (1,0)
@@ -678,7 +856,7 @@ all_h_osm_wrangle_geo = all_highway_dupes_rid %>%
       
       grepl("Trolley Line Trail", osm_name_osm) ~ 1,
       osm_id_osm == 40940376 ~1 , #part of the trolley trail; south of coan park
-    
+      
       #both of these work but note that the segments, defined above, open at different times, 
       #per date variables below
       grepl("Atlanta BeltLine Eastside Trail", osm_name_osm) ~ 1, 
@@ -759,11 +937,12 @@ all_h_osm_wrangle_geo = all_highway_dupes_rid %>%
     ### classify bike lane - protected---------------------
     infra_bike_lane_protected = 
       case_when(
+        project_peachtree_center_pbl_east==1~1,#adding June 1, 2023
         grepl("Portman PATH", osm_name_osm) ~ 1,
         grepl("Peachtree Center Cycle", osm_name_osm) ~ 1,
         project_luckie_st_lane_protected==1 ~1,
         project_n_mcdonough_st_lane_protected == 1 ~1,
-        osm_id_osm == 75359071 ~ 1  #part of 10th street cycletrack
+        project_10th_st_protected_lane==1~1,
         # cycleway == "track" ~ 1, #not universally true so don't use this criterion
       ) ,
     
@@ -776,15 +955,26 @@ all_h_osm_wrangle_geo = all_highway_dupes_rid %>%
     
   ### classify bike lane - conventional--------------------------------
   #12/19/21 what about eagle row? confirmed it's there. you're good. proceed.
+  #June 1, 2023 - it gets added from my summer 2016 code
     infra_bike_lane_conventional =  case_when(
       #hard code some
       project_milton_ave_bike_lane_conv==1 ~ 1,
-      project_rda_cascade_mlk_bike_lane_conv==1 ~1, #the RDA lannes that are actually conventional
-      project_sylvan_bike_lane_buff_conv==1 ~ 1, #classifying as conventional but will correct some edges later
+      project_rda_cascade_mlk_bike_lane_conv==1 ~1, #the RDA lanes that are actually conventional
+      
+      #classifying as conventional but will correct some edges later
+      project_sylvan_bike_lane_buff_conv==1 ~ 1, 
       project_lawton_bike_lane_conv == 1 ~ 1,
       project_united_bike_lane_conv_old == 1 ~ 1, 
       project_marietta_st_bike_lane_conv_2018Dec ==1 ~ 1,
-      project_college_ave_bike_lane_conv ==1 ~1, #12/16/21 you had forgotten about college (august 2018 open)
+      
+      #12/16/21 you had forgotten about college (august 2018 open)
+      project_college_ave_bike_lane_conv ==1 ~1, 
+      
+      
+      project_clifton_emory_conf_hotel_to_emory_point==1~1,#added Jun 1, 2023
+      
+      projet_ferst_dr_nw_conv==1~1,#added June 1, 2023
+      
       cycleway.right=="lane" ~ 1  #double check this condition
     ),
     
@@ -795,14 +985,24 @@ all_h_osm_wrangle_geo = all_highway_dupes_rid %>%
       #changed this to sharrow 12/16/21
       project_united_sharrow_2018summer == 1 ~ 1, 
       
-      #on clifton, where it says bicycle is designated, that's a sharrow.
-      #there is a sign that says "bikes can use full lane" or something
-      grepl("Clifton", osm_name_osm) & bicycle == "designated" ~ 1,
+      #June 1, 2023 - Clifton work - note the default should be sharrows
+      #and then it changes to conventional bike lane in spots, per above project,
+      #but that will be accomplished in the next code where we add the longitudinal information
+      project_clifton_n_decatur_to_e_row_before_201708==1~1,
       
+      #always sharrows - added June 1, 2023
+      project_clifton_e_row_to_emory_conf_hotel==1~1,
+      project_clifton_emory_point_to_briarcliff==1~1,
+      
+      #adding these sharrows - June 3, 2023
+      project_sharrows_decatur==1~1,
+      project_sharrows_cottage_grove_oakview_se==1~1,#June 3rd, 2023
       #these two are cycleway.right == shared_lane, but I'm not using that generally
       #since there is a false positive. These are westview
       osm_id_osm == 31021597 ~ 1,
       osm_id_osm == 9236218 ~ 1,
+      
+      project_ferst_dr_nw_sharrow==1~1,#added June 2023
       
       cycleway == "shared_lane" ~ 1, #cumberland (9268685) is an example 
       
@@ -871,7 +1071,8 @@ all_h_osm_wrangle_geo = all_highway_dupes_rid %>%
     project_westside_trail_paved    ==  1 ~1,
     TRUE ~0),
   
-  #I'm going to call this PCG instead. Right? why not. I guess I used PRO as PC could be peachtree creek
+  #I'm going to call this PCG instead. Right? why not. 
+  #I guess I used PRO as PC could be peachtree creek
   diss_a1_pro = case_when(
     project_proctor_creek_greenway  == 1 ~ 1,
     TRUE ~0),
@@ -1024,14 +1225,27 @@ all_h_osm_wrangle_geo = all_highway_dupes_rid %>%
     project_united_sharrow_2018summer == 1 ~ lubridate::ymd(20180701), #united is actually a sharrow
     project_united_bike_lane_conv_old == 1 ~ lubridate::ymd(20120701),#these bike lanes look old
     project_bitsy_grant_trail==1 ~ lubridate::ymd(20181001), #northwest beltline connector (after aim 1)
-    project_marietta_st_bike_lane_conv_2018Dec ==1 ~lubridate::ymd(20181201)
-    ), #after aim 1
+    #Confirmed this Marietta project on Street View June 1, 2023.
+    #It's after the aim 3 study ended, though.
+    #after aim 1 as well
+    project_marietta_st_bike_lane_conv_2018Dec ==1 ~lubridate::ymd(20181201),
+    
+    #Clifton Corridor - adding this June 1, 2023
+    project_clifton_n_decatur_to_e_row_before_201708==1~lubridate::ymd(20170801),
+
+    #a discovery Oakview and Cottage Grove - June 3rd, 2023
+    #rough guess - June 3rd 2023
+    project_sharrows_cottage_grove_oakview_se==1~lubridate::ymd(20171001)
+    
+  ),#close the case when above
 
     #12/17/21 this is a simple indicator variable so I can set my ribbon_study_month accordingly
     #for some of them, it makes sense to set the first month they were open the month following
-    #the date they were officially open. for others, based on experience on the ground, it was clear they were
+    #the date they were officially open. for others, based on experience on the ground, 
+      #it was clear they were
     #very open and rideable on the day they were open, or even before. so keep track of that here.
-    #this will be added on, so a zero indicates same month, and a 1 (or more) indicates push the rideable
+    #this will be added on, so a zero indicates same month, 
+    #and a 1 (or more) indicates push the rideable
     #opening farther in the future
     ribbon_month_after_or_same = case_when(
       project_eastside_trail_wylie_extension == 1 ~ 0,
@@ -1069,6 +1283,7 @@ all_h_osm_wrangle_geo = all_highway_dupes_rid %>%
       project_united_bike_lane_conv_old == 1 ~ 0,
       project_bitsy_grant_trail==1 ~ 0, 
       project_marietta_st_bike_lane_conv_2018Dec ==1 ~0 ,
+      project_clifton_n_decatur_to_e_row_before_201708==1~0, 
       TRUE ~ 0 #else set it to 0 just in case I missed some.
     ),
 
@@ -1134,6 +1349,8 @@ all_h_osm_wrangle_geo = all_highway_dupes_rid %>%
       project_s_peachtree_creek_clairmont_lake == 1 ~ "PATH Foundation webpage & personal knowledge",
       
       project_rda_cascade_mlk_bike_lane_dec2018 == 1 ~ "City Report, 2017",
+      
+      project_clifton_n_decatur_to_e_row_before_201708==1~"Emory new",
       
       #leave this one as last so you stop messing up your code
       project_n_mcdonough_st_lane_protected == 1 ~ "news media"
@@ -1208,6 +1425,7 @@ all_h_osm_wrangle_geo = all_highway_dupes_rid %>%
 ## save---------------------------------
 setwd(here("data-processed"))
 save(all_h_osm_wrangle_geo, file = "all_h_osm_wrangle_geo.RData")
+#load("all_h_osm_wrangle_geo.RData")
 #a version without geometry
 all_h_osm_wrangle_nogeo = all_h_osm_wrangle_geo %>% 
   st_set_geometry(NULL)
@@ -1221,19 +1439,28 @@ save(lookup_osm_wrangle_geo, file = "lookup_osm_wrangle_geo.RData")
 
 
 # Create a dataset of infra that WAS NOT classified above in the OSM-specific coding------------
+#May 31, 2023 - okay this makes sense. I'm limiting to the observations without infra
+#per the above and I will link in the infra data I used for my summer 2016 validation study,
+#which I'm working on making sure is 100% accurate.
 all_h_osm_noinfra = all_h_osm_wrangle_geo %>% 
   filter(infra_pre_merge_none==1)
 save(all_h_osm_noinfra, file = "all_h_osm_noinfra.RData")
+names(all_h_osm_noinfra)
+
+#and the complement. create it here.
+all_h_osm_anyinfra = all_h_osm_wrangle_geo %>% 
+  filter(infra_pre_merge_none==0) %>% 
+  mutate( 
+    #Define infra 6 cat. It's simply how it's defined by the OSM coding above.
+    infra_6cat_none = infra_6cat_pre_merge 
+  )
+
+table(all_h_osm_anyinfra$infra_6cat_none) #there should be no missings by definition
 
 
-# some exploring------------
+## checks and exploring------------
 #confirm your ribbon date...
 table(all_h_osm_wrangle_nogeo$ribbon_study_month)
-#the ones I explored now appear in the classification above. looking at various combinations
-#of highways and footpaths and surfaces
-#load( file = "all_h_osm_wrangle_geo.RData")
-# options(viewer = NULL) #send viewer to the browser
-# options(browser = "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe")
 set2_6 = RColorBrewer::brewer.pal(n=6, name = "Set2")
 set1_6 = RColorBrewer::brewer.pal(n=6, name = "Set1")
 # all_h_osm_wrangle_geo %>%
@@ -1244,24 +1471,36 @@ set1_6 = RColorBrewer::brewer.pal(n=6, name = "Set1")
 #   ) %>% mapview()
 # 
 
-# all_h_osm_wrangle_geo %>%
-#   filter(beltline==1) %>% 
-#   mapview(
-#     zcol="infra_6cat_pre_merge",
-#     color = set2_6
-#   )
+#May 30 2023,
+#This is where I realized that the issues with the phantom bike lanes
+#ocurred in the coa/arc code from June 2016
+#also checking Clifton June 1, 2023. Looks good.
+all_h_osm_wrangle_geo %>%
+#  filter(beltline==1) %>%
+  filter(infra_6cat_pre_merge!="none") %>% 
+  mapview(
+    zcol="infra_6cat_pre_merge",
+    color = turbo(n=n_distinct(all_h_osm_wrangle_geo$infra_6cat_pre_merge))
+  )
 
 
-# Gather infrastructure that was previously classified by ARC or City of  Atlanta-------------
+## Gather infrastructure that was previously classified by ARC or City of  Atlanta-------------
 # link in the infra with the work you did in 2016.
-#See the end of this code: 1_1_Import_manage_bike_layers_data_20201009
+#May 30th, 2023:
+#I"m trying to figure out where this came from.
+#See comments in Evernote.
+#I am modifying this code that I wrote a long time ago.
+source(here("scripts","summer-2016-bike-study","wrangle-bike-infra-summer-2016.R"))
+#In its original iteration, that code was called:
+#1_1_Import_manage_bike_layers_data_20201009
 
 #Unfortunately, this will mean that it will be less easy to simply load OSM data and code 
 #it all that way
 #but that's alright for now. you can still post it online - just post the data
 
+
 setwd(here("data-processed"))
-#load( file = "bike_inf_5_i285_4326.RData")
+load( file = "bike_inf_5_i285_4326.RData")
 #load( file = "all_h_osm_wrangle_geo.RData")
 # load( file = "monpon_sf_1mi.RData")
 # load( file = "monpon_sf_2mi.RData")
@@ -1269,146 +1508,120 @@ set2_6 = RColorBrewer::brewer.pal(n=6, name = "Set2")
 set2_5 = RColorBrewer::brewer.pal(n=5, name = "Set2")
 set1_6 = RColorBrewer::brewer.pal(n=6, name = "Set1")
 
+names(bike_inf_5_i285_4326)
+bike_inf_5_i285_4326 %>% mapview(zcol="infra_6cat_arc_coa")
+
+
+# Create a buffer around your previous (circa 2016) infrastructure-------#
+# May 31, 2023 here again.
 #above, I used a 20-foot buffer, so try that here, too. 
 #Filter to where the main OSM file is infra_6cat_pre_merge = none, and then st_intersection() it
 #against the buffered version of bike_inf_5
 
-## Create a buffer around your previous (circa 2016) infrastructure---------------------------
-# ----COMMENT OUT 12/4/21 This spatial intersection step takes forever. Comment out------##############
 # names(bike_inf_5_i285_4326)
-# bike_inf_5_i285_4326_buff = bike_inf_5_i285_4326 %>% 
-#   #convert to feet
-#   st_transform("+proj=tmerc +lat_0=30 +lon_0=-84.16666666666667 +k=0.9999 +x_0=699999.9999999999
-#                +y_0=0 +datum=NAD83 +units=us-ft +no_defs +ellps=GRS80 +towgs84=0,0,0") %>%
-#   #a 15 foot buffer might prevent some of the weird stuff but honestly this is fine.
-#   #Note, the 18 is a happy medium. I got one bike lane back that I had missed with 15.
-#   st_buffer(18) %>%  #brought it down to 15. I lost some. go back up to 18
-#   st_transform(4326) %>% 
-#   mutate(coa_arc = 1)
-# 
-# 
-# nrow(all_h_osm_noinfra)
-# 
-# #for speed to see if it works, then run on the main onef
-# #all_h_osm_noinfra_2mi = all_h_osm_noinfra %>%  st_intersection(monpon_sf_2mi)
-# 
-# #12/4/21 it's giving me an error saying bike_inf_5_i285_4326_buff is not valid
-# sf::st_is_valid(all_h_osm_noinfra)
-# sf::st_is_valid(bike_inf_5_i285_4326_buff) #not valid at one row
-# 
-# bike_inf_5_i285_4326_buff_valid = bike_inf_5_i285_4326_buff %>%
-#   st_make_valid()
-# st_is_valid(bike_inf_5_i285_4326_buff_valid)
-# 
-# #Intermediate step: save some things because the step to create
-# # all_h_osm_coa_arc_int is taking forever and exhausting memory (12/4/21)
-# save(bike_inf_5_i285_4326_buff_valid, file = "bike_inf_5_i285_4326_buff_valid.RData")
+bike_inf_5_i285_4326
+bike_inf_5_i285_4326_buff = bike_inf_5_i285_4326 %>%
+  #convert to feet
+  st_transform("+proj=tmerc +lat_0=30 +lon_0=-84.16666666666667 +k=0.9999 +x_0=699999.9999999999
+               +y_0=0 +datum=NAD83 +units=us-ft +no_defs +ellps=GRS80 +towgs84=0,0,0") %>%
+  #a 15 foot buffer might prevent some of the weird stuff but honestly this is fine.
+  #Note, the 18 is a happy medium. I got one bike lane back that I had missed with 15.
+  st_buffer(18) %>%  #brought it down to 15. I lost some. go back up to 18
+  st_transform(4326) %>%
+  st_make_valid() %>% #make sure it's valid.
+  mutate(coa_arc = 1)
+#
+#Intermediate step: save some things because the step to create
+# all_h_osm_coa_arc_int is taking forever and exhausting memory (12/4/21)
+save(bike_inf_5_i285_4326_buff, file = "bike_inf_5_i285_4326_buff.RData")
 
-# load(file = "all_h_osm_noinfra.RData")
-# load(file = "bike_inf_5_i285_4326_buff_valid.RData")
-# library(tidyverse)
-# library(sf)
-# library(mapview)
-# names(bike_inf_5_i285_4326_buff_valid)
-# names(all_h_osm_noinfra)
-# 
+library(tidyverse)
+library(sf)
+library(mapview)
+names(bike_inf_5_i285_4326_buff)
+names(all_h_osm_noinfra)
+#
 # #12/4/21 paring down to fewer variables because I was reaching the memory limit of R
-# all_h_osm_noinfra_fewervars = all_h_osm_noinfra %>% 
-#   dplyr::select(osm_id_osm, geometry) %>% 
-#   mutate(row_for_chop = row_number())
-# 
-# bike_inf_5_i285_4326_buff_valid_fewervars = bike_inf_5_i285_4326_buff_valid %>% 
-#   dplyr::select(starts_with("data"), starts_with("infra"), geometry)
-# rm(bike_inf_5_i285_4326_buff_valid)
-# 
-# #mapview(bike_inf_5_i285_4326_buff_valid_fewervars) #leave this one as is.
-# nrow(all_h_osm_noinfra_fewervars)
-# nrow(all_h_osm_noinfra_fewervars)/5
-# 
-# names(bike_inf_5_i285_4326_buff_valid)
-# table(bike_inf_5_i285_4326_buff_valid$data_source)
-# table(bike_inf_5_i285_4326_buff_valid$coa_arc)
-# all_h_osm_noinfra_few_test  = all_h_osm_noinfra_fewervars %>% slice(1:1000)
-# all_h_osm_noinfra_few_1_20000 = all_h_osm_noinfra_fewervars %>% slice(1:20000)
-# all_h_osm_noinfra_few_20001_40000 = all_h_osm_noinfra_fewervars %>% slice(20001:40000)
-# all_h_osm_noinfra_few_40001_60000 = all_h_osm_noinfra_fewervars %>% slice(40001:60000)
-# all_h_osm_noinfra_few_60001_80000 = all_h_osm_noinfra_fewervars %>% slice(60001:80000)
-# all_h_osm_noinfra_few_80001_90000 = all_h_osm_noinfra_fewervars %>% slice(80001:90000) #max is 87026
-#                 
-# #okay, going to chop them up into multiples and stack, as I have before.
-# # mapview(all_h_osm_noinfra_fewervars) #chop this one up.
-# #divide into 5
-# 
-# # #test
-# # start_time = Sys.time()
-# # all_h_osm_coa_arc_int_1_test = all_h_osm_noinfra_few_test %>% 
-# #   st_intersection(bike_inf_5_i285_4326_buff_valid_fewervars)  
-# # end_time = Sys.time()
-# # end_time-start_time
-# # #14 seconds for 1000 obs
-# # (87000/1000 * 14)/60 #so it should take 20 minutes to run all 90
-# 
-# all_h_osm_coa_arc_int_1_20000 = all_h_osm_noinfra_few_1_20000 %>% 
-#   st_intersection(bike_inf_5_i285_4326_buff_valid_fewervars)  
-# save(all_h_osm_coa_arc_int_1_20000, file = "all_h_osm_coa_arc_int_1_20000.RData")
-# 
-# all_h_osm_coa_arc_int_20001_40000 = all_h_osm_noinfra_few_20001_40000 %>% 
-#   st_intersection(bike_inf_5_i285_4326_buff_valid_fewervars)  
-# save(all_h_osm_coa_arc_int_20001_40000, file = "all_h_osm_coa_arc_int_20001_40000.RData")
-# 
-# all_h_osm_coa_arc_int_40001_60000 = all_h_osm_noinfra_few_40001_60000 %>% 
-#   st_intersection(bike_inf_5_i285_4326_buff_valid_fewervars)  
-# save(all_h_osm_coa_arc_int_40001_60000, file = "all_h_osm_coa_arc_int_40001_60000.RData")
-# 
-# all_h_osm_coa_arc_int_60001_80000 = all_h_osm_noinfra_few_60001_80000 %>% 
-#   st_intersection(bike_inf_5_i285_4326_buff_valid_fewervars)  
-# save(all_h_osm_coa_arc_int_60001_80000, file = "all_h_osm_coa_arc_int_60001_80000.RData")
-# 
-# all_h_osm_coa_arc_int_80001_90000 = all_h_osm_noinfra_few_80001_90000 %>% 
-#   st_intersection(bike_inf_5_i285_4326_buff_valid_fewervars)  
-# save(all_h_osm_coa_arc_int_80001_90000, file = "all_h_osm_coa_arc_int_80001_90000.RData")
-# 
-# #add vars after they're rbound
-# all_h_coa_arc_int_pick_one = all_h_osm_coa_arc_int_1_20000 %>% 
-# #all_h_osm_coa_arc_int = all_h_osm_coa_arc_int_1_20000 %>% ## 12/4/21 I'm combining this code into one chunk to simplify.
-#   bind_rows(
-#     all_h_osm_coa_arc_int_20001_40000,
-#     all_h_osm_coa_arc_int_40001_60000,
-#     all_h_osm_coa_arc_int_60001_80000,
-#     all_h_osm_coa_arc_int_80001_90000
-#   ) %>% 
-#   #this is just to create an indicator, and thisi is by definition
-#   #of the intersection above going to be 1 for all, so set all to 1.
-#   rename(data_source_coa_arc = data_source) %>% 
-#   mutate(
-#     join_arc_coa = 1,
-#     length_chopped_m = as.numeric(st_length(geometry)),
-#     osm_chopped_no = row_number()
-#   ) %>% 
-#   #great, now just pick the longest of that osm if there are duplicates.
-#  st_set_geometry(NULL) %>% #turn geometry on or off
-#   group_by(osm_id_osm) %>% 
-#   #the default is to sort ascending, so this grabs the biggest one
-#   arrange(desc(length_chopped_m)) %>%  
-#   slice(1) %>% 
-#   ungroup() %>% 
-#   dplyr::select(osm_id_osm, #from all_h_osm_noinfra
-#                 infra_6cat_arc_coa, #from bike_inf_5_i285_4326_buff
-#                 join_arc_coa, #created just above
-#                 length_chopped_m, #created just above
-#                 osm_chopped_no #created just above
-#                 ) 
-# save(all_h_coa_arc_int_pick_one, file = "all_h_coa_arc_int_pick_one.RData")
+#May 31, 2023 - it's more about number of rows than number of vars. Remove
+#service or unclassified, as there's no infra on those raods.
+table(all_h_osm_noinfra$highway_6cat)
+# all_h_osm_noinfra %>% 
+#   filter(highway_6cat=="unclassified or service") %>% 
+#   mapview()
+#Yup, let's get rid of all of this - May 31, 2023 - no infra of note
+all_h_osm_noinfra_fewervars = all_h_osm_noinfra %>%
+  dplyr::select(osm_id_osm, geometry, highway_6cat) %>%
+  mutate(row_for_chop = row_number())
 
-#---END spatial intersection comment out-----###############
+names(all_h_osm_noinfra_fewervars)
+all_h_osm_noinfra_fewervars_yes_unclass_service=all_h_osm_noinfra_fewervars %>% 
+  filter(highway_6cat=="unclassified or service") %>% 
+  dplyr::select(-starts_with("highway"))#drop it to avoid conflicts.
+
+all_h_osm_noinfra_fewervars_no_unclass_service=all_h_osm_noinfra_fewervars %>% 
+  filter(highway_6cat!="unclassified or service") %>% 
+  dplyr::select(-starts_with("highway"))#drop it to avoid conflicts.
+
+#all_h_osm_noinfra_fewervars_no_unclass_service %>% mapview()
+
+#May 31, 2023 To speed things up, I can remove all serviceo or unclassified from
+#this intersection.
+nrow(all_h_osm_noinfra_fewervars)
+
+bike_inf_5_i285_4326_buff_fewervars = bike_inf_5_i285_4326_buff %>%
+  dplyr::select(starts_with("data"), starts_with("infra"), geometry)
+
+
+mapview(bike_inf_5_i285_4326_buff_fewervars) #leave this one as is.
+nrow(all_h_osm_noinfra_fewervars)
+nrow(all_h_osm_noinfra_fewervars)/5
+
+## Spatial intersection between old 2016 data and this OSM no infra data------
+#Run spatial intersection. I had originally broken it up into smaller chunks,
+#but I'm hoping I don't need to do that now with my Macbook.
+#Yup, this took about 10 mins. Not too terrible.
+all_h_osm_coa_arc_int = all_h_osm_noinfra_fewervars_no_unclass_service %>%
+  st_intersection(bike_inf_5_i285_4326_buff_fewervars)
+
+
+names(all_h_osm_coa_arc_int)
+#Pick one meaning take the longest one down there.
+all_h_coa_arc_int_pick_one = all_h_osm_coa_arc_int %>%
+  #this is just to create an indicator, and thisi is by definition
+   #of the intersection above going to be 1 for all, so set all to 1.
+   rename(data_source_coa_arc = data_source) %>%
+    mutate(
+    join_arc_coa = 1,
+    length_chopped_m = as.numeric(st_length(geometry)),
+    osm_chopped_no = row_number()
+  ) %>%
+  #load those other service-road obs back in here, May 31, 2023
+  bind_rows(all_h_osm_noinfra_fewervars_yes_unclass_service) %>% 
+#   #great, now just pick the longest of that osm if there are duplicates.
+  st_set_geometry(NULL) %>% #turn geometry on or off
+   group_by(osm_id_osm) %>%
+#   #the default is to sort ascending, so this grabs the biggest one
+   arrange(desc(length_chopped_m)) %>%
+   slice(1) %>%
+   ungroup() %>%
+  dplyr::select(osm_id_osm, #from all_h_osm_noinfra
+                infra_6cat_arc_coa, #from bike_inf_5_i285_4326_buff
+                join_arc_coa, #created just above
+                length_chopped_m, #created just above
+                osm_chopped_no #created just above
+                )
+ save(all_h_coa_arc_int_pick_one, file = "all_h_coa_arc_int_pick_one.RData")
+
 
 # set2_5 = RColorBrewer::brewer.pal(n=5, name = "Set2")
-# all_h_coa_arc_int_pick_one %>%
-#   filter(is.na(infra_6cat_arc_coa)==FALSE) %>%
-#   mapview(
-#     zcol="infra_6cat_arc_coa",
-#     color = set2_5
-#   )
+all_h_coa_arc_int_pick_one %>%
+  filter(is.na(infra_6cat_arc_coa)==FALSE) %>%
+  left_join(lookup_osm_wrangle_geo,by="osm_id_osm") %>% 
+  st_as_sf() %>% 
+  mapview(
+    zcol="infra_6cat_arc_coa",
+    color = set2_5
+  )
 
 
 
@@ -1426,11 +1639,12 @@ set1_6 = RColorBrewer::brewer.pal(n=6, name = "Set1")
 ## Link that back with the main one that DID not have any infra classified by OSM------------------
 #load it again so that it can be deleted above.
 setwd(here("data-processed"))
-load(file = "all_h_osm_noinfra.RData")
-load(file = "all_h_coa_arc_int_pick_one.RData")
-library(tidyverse)
-library(sf)
-library(mapview)
+# load(file = "all_h_osm_noinfra.RData")
+# load(file = "all_h_coa_arc_int_pick_one.RData")
+names(all_h_coa_arc_int_pick_one)
+table(all_h_coa_arc_int_pick_one$infra_6cat_arc_coa)
+
+class(all_h_osm_noinfra)
 all_h_infra_join_coa_arc = all_h_osm_noinfra %>%
   left_join(all_h_coa_arc_int_pick_one, by = "osm_id_osm") %>%
   mutate(
@@ -1457,6 +1671,13 @@ save(all_h_infra_join_coa_arc, file = "all_h_infra_join_coa_arc.RData")
 names(all_h_infra_join_coa_arc)
 summary(all_h_infra_join_coa_arc$length_osm_remeasure_m)
 summary(all_h_infra_join_coa_arc$length_osm_m)
+table(all_h_infra_join_coa_arc$join_arc_coa)
+#Mapview May 30, 2023
+#Ugh, okay, here's the issue. 
+all_h_infra_join_coa_arc %>% 
+  filter(infra_6cat_none!="none") %>% 
+  filter(join_arc_coa==1) %>% 
+  mapview(zcol="infra_6cat_none")
 
 table(all_h_infra_join_coa_arc$infra_6cat_pre_merge)
 table(all_h_osm_wrangle_nogeo$infra_pre_merge_none)
@@ -1472,22 +1693,18 @@ nrow(all_h_osm_noinfra)
 #   )
 # - GREAT. that seems to have worked. now link in with the file THAT DID have infra coded by me.
 
-load(file = "all_h_osm_wrangle_geo.RData")
-
-all_h_osm_anyinfra = all_h_osm_wrangle_geo %>% 
-  filter(infra_pre_merge_none==0) %>% 
-  mutate( 
-    #Define infra 6 cat. It's simply how it's defined by the OSM coding above.
-    infra_6cat_none = infra_6cat_pre_merge 
-    )
-
-table(all_h_osm_anyinfra$infra_6cat_none) #there should be no missings by definition
+#load(file = "all_h_osm_wrangle_geo.RData")
 
 
+#Okay, the issue is not in all_h_osm_anyinfra,
+#but in all_h_infra_join_coa_arc
+# all_h_osm_anyinfra %>% 
+#   mapview(zcol="infra_6cat_none")
 #all_h_osm_anyinfra %>% dplyr::select(osm_id_osm, starts_with("infra") ) %>% View()
 
 nrow(all_h_osm_anyinfra)
 nrow(all_h_osm_noinfra)
+nrow(all_h_osm_wrangle_nogeo)
 nrow(all_h_osm_anyinfra) + nrow(all_h_osm_noinfra) #check that they add up
 
 ## and bind rows them together-----------
@@ -1495,7 +1712,7 @@ table(all_h_infra_join_coa_arc$infra_6cat_none)
 table(all_h_osm_anyinfra$infra_6cat_none)
 #call it both because it includes data from both OSM and from ARC/COA
 all_h_osm_wrangle_both_geo = all_h_infra_join_coa_arc %>% 
-  bind_rows(all_h_osm_anyinfra) %>% 
+  bind_rows(all_h_osm_anyinfra) %>% #created above.
   #remake the infra_6cat variable, too, wherein the none is missings
   #for posterity to make sure the code works in other places
   mutate(
@@ -1525,8 +1742,26 @@ all_h_osm_wrangle_both_geo = all_h_infra_join_coa_arc %>%
     osm_id_osm == 395875912  ~  1, #a sharrow / pedstrian at L5P. would prefer not to hard code
     infra_6cat == "sharrow" & highway == "pedestrian" ~ 1, #one at L5P
     infra_6cat == "bike_lane_buffered" & highway == "footway" ~ 1,
+    
     #this is a bridge footway in the middle of the portman path. don't want to hard code.
     osm_id_osm == 39448233 ~ 1, 
+    
+    #June 3rd, 2023
+    #remove the square coded as an off-street path at Peachtree St NE and 3rd St NE
+    osm_id_osm==468024023~1,
+
+    #June 3rd, 2023    
+    #a similar square in Home Park - not really an off-street path
+    #Home Park Ave and State St. nW
+    osm_id_osm==468745079~1,
+    
+    #a similar thing on Georgia Tech's campus
+    osm_id_osm==177014164~1,
+    
+    #a similar little path just s of Ralph McGill
+    #and west of Parkway Dr NE.
+    #don't call this an off-street path.
+    osm_id_osm==243478849~1,
     
     #remove the little chopped pieces of infrastructure----######
     #update 10/11 - changed to 35 from 30 to remove a few more.
@@ -1600,12 +1835,17 @@ names(all_h_osm_wrangle_both_geo)
 #   )
 # 
 # all_h_osm_wrangle_both_geo
-# all_h_osm_wrangle_both_geo %>%
-#   filter(is.na(infra_6cat_none_abbrev) !="none") %>%
-#   mapview(
-#     zcol="infra_6cat_none_abbrev",
-#     color = set2_6
-#   )
+#Here May 30 2023:
+#Okay, the conventional bike lane on Peachtree is here, and it
+#shouldn't be
+#as is the sharrow on Peachtree St NE
+all_h_osm_wrangle_both_geo %>%
+  dplyr::select(starts_with("osm"),starts_with("infra")) %>% 
+  filter(infra_6cat_none!="none") %>%
+  mapview(
+    zcol="infra_6cat_none_abbrev",
+    color=turbo(n=n_distinct(all_h_osm_wrangle_both_geo$infra_6cat_none_abbrev))
+  )
 
 
 
@@ -1674,21 +1914,35 @@ all_h_osm_wrangle_buff_20ft_geo %>%
 # 
 # library(mapview)
 # set2_5 = RColorBrewer::brewer.pal(n=5, name = "Set2")
-# bike_inf_5_i285_4326_buff %>% 
-#   filter(is.na(infra_6cat_arc_coa)==FALSE) %>% 
-#   mapview(
-#     zcol="infra_6cat_arc_coa",
-#       lwd=0,
-#     col.regions = set2_5
-#   )
-# 
+#load("bike_inf_5_i285_4326.RData")
+bike_inf_5_i285_4326 %>%
+  filter(is.na(infra_6cat_arc_coa)==FALSE) %>%
+  dplyr::select(starts_with("osm"),starts_with("infra"),
+                starts_with("project")) %>% 
+  mapview(
+    zcol="infra_6cat_arc_coa",
+    color=turbo(n=n_distinct(bike_inf_5_i285_4326$infra_6cat_arc_coa))
+  )
 
-# all_h_osm_wrangle_geo %>%
-#   filter(is.na(infra_6cat_pre_merge)==FALSE) %>%
-#   mapview(
-#     zcol="infra_6cat_pre_merge",
-#     color = set2_6
-#   )
+table(all_h_osm_wrangle_both_geo$infra_6cat_none)
+#load("all_h_osm_wrangle_both_geo.RData")
+all_h_osm_wrangle_both_geo %>%
+  filter(infra_6cat_none!="none") %>%
+  dplyr::select(starts_with("osm"),starts_with("infra"),
+                starts_with("project")) %>% 
+  mapview(
+    zcol="infra_6cat_none",
+    color=turbo(n=n_distinct(all_h_osm_wrangle_both_geo$infra_6cat_none))
+  )
+
+#check the peachtree center cycle track project
+table(all_h_osm_wrangle_both_geo$project_peachtree_center_pbl_east)
+table(all_h_osm_wrangle_both_geo$infra_6cat_none)
+all_h_osm_wrangle_both_geo %>% 
+  dplyr::select(starts_with("osm"),starts_with("infra"),
+                starts_with("project")) %>% 
+  filter(infra_6cat_none=="bike_lane_protected") %>%
+  mapview(zcol="project_peachtree_center_pbl_east")
 # 
 # #a vis that omits the dirt so it aligns with the infra file you made in 2016/17
 # table(all_h_osm_wrangle_geo$infra_6cat_pre_merge)
@@ -1700,8 +1954,29 @@ all_h_osm_wrangle_buff_20ft_geo %>%
 #     color = set2_6
 #   )
 
+#June 3rd, 2023
+#For feasibility purposes, I have to stop mapping.
+#out of curiosity, how many miles are in the study area?
+# study_area_osm=all_h_osm_wrangle_both_geo %>% 
+#   st_intersection(mp_sf_5halfmi) 
+# 
+# summary(study_area_osm$length_osm_m)
+# table(study_area_osm$highway_6cat)
+# study_area_osm %>% 
+#   st_set_geometry(NULL) %>% 
+#   mutate(dummy=1) %>% 
+#   filter(highway_6cat!="unclassified or service") %>% 
+#   group_by(dummy) %>% 
+#   summarise(length_osm_m=sum(length_osm_m,na.rm=TRUE)) %>% 
+#   ungroup() %>% 
+#   mutate(
+#     length_osm_km=length_osm_m/1000,
+#     length_osm_m=0.000621371*length_osm_m
+#          )
+#say we exclude the service roads from the calculation
+# 1837 miles of total OSM segments in the study area.
 
-
+#It's simply not feasible for us to get everything.
 
 
 

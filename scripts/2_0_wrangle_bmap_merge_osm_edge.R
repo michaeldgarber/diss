@@ -403,7 +403,8 @@ n_distinct(bmap_edge_join_geo$osm_id_strava) #48568
 #this is really the holy grail that everything above is trying to do.
 lookup_edge_id_osm_id_osm = bmap_edge_join_geo %>% 
   st_set_geometry(NULL) %>% 
-  distinct(edge_id, osm_id_osm)
+  distinct(edge_id, osm_id_osm) %>% 
+  as_tibble()
 save(lookup_edge_id_osm_id_osm, file = "lookup_edge_id_osm_id_osm.RData")
 nrow(lookup_edge_id_osm_id_osm)
 nrow(bmap_edge_join_geo) #good. same

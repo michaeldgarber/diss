@@ -14,7 +14,7 @@ library(mapview) #loads leeaflet.
 library(tidycensus)
 library(here)
 
-#-------Gather ACS data from 2015-2019 5-year ACS-----##############
+# Gather ACS data from 2015-2019 5-year ACS----------------
 
 #note that they don't want us to compare 5-year ACS data year over year
 #https://www.census.gov/programs-surveys/acs/guidance/comparing-acs-data.html
@@ -74,7 +74,6 @@ atl_tracts_acs5_20152019_geo  = get_acs(
 )
                     
               
-mapview(atl_tracts_acs5_20152019_geo, zcol = "race_bE")
 
 #save to the analysis data folder rather than the other one to avoid having to change your working directory
 setwd(here("data-processed"))
@@ -99,6 +98,7 @@ atl_tracts_a1_int_bmap_geo = atl_tracts_acs5_20152019_geo %>%
     #calculate sf stuff first.
     tract_area_m2 = as.numeric(st_area(geometry)),
     tract_area_mi2 = tract_area_m2*0.000000386102,
+    tract_area_km2=tract_area_m2*1e-6,#added May 22, 2023
     tract_id = row_number()) %>%    #make a tract_id variable for linking. don't trust GEOID
   #remove the geometry before using the rename_with function and then link the geo back in
   #because rename_with doesn't seem to work with sf objects: https://github.com/r-spatial/sf/issues/1472
@@ -134,12 +134,15 @@ nrow(atl_tracts_a1_int_bmap_geo)
 
 names(atl_tracts_a1_int_bmap_geo)
 save(atl_tracts_a1_int_bmap_geo, file = "atl_tracts_a1_int_bmap_geo.RData")
+
+
 #save an aspatial version for speed in the bootstap
 atl_tracts_a1_int_bmap_nogeo = atl_tracts_a1_int_bmap_geo %>% 
   st_set_geometry(NULL) %>% 
   as_tibble()
 save(atl_tracts_a1_int_bmap_nogeo, file = "atl_tracts_a1_int_bmap_nogeo.RData")
 
+load("atl_tracts_a1_int_bmap_geo.RData")
 atl_tracts_a1_geo = atl_tracts_a1_int_bmap_geo %>% 
   mutate(
     #see https://www.census.gov/content/dam/Census/programs-surveys/acs/guidance/training-presentations/20180418_MOE.pdf
@@ -166,7 +169,17 @@ atl_tracts_a1_geo = atl_tracts_a1_int_bmap_geo %>%
     race_o_prop = 1-race_b_prop - race_w_prop,    #I'd like an other category (black, white, other)
     t_to_w_bike_prop = t_to_w_bike/t_to_w_tot, 
 
-    pop_dens_mi2 = pop_tot/tract_area_mi2 
+    pop_dens_mi2 = pop_tot/tract_area_mi2 ,
+    pop_dens_km2=pop_tot/tract_area_km2,#added May 22, 2023
+    
+    
+    #some categorical variables May 9, 2023
+    hh_inc_med_5cat=cut_number(hh_inc_med,5),
+    h_val_med_5cat=cut_number(h_val_med,5) ,
+    pop_dens_mi2_5cat=cut_number(pop_dens_mi2,5),
+    pop_dens_km2_5cat=cut_number(pop_dens_km2,5),
+    race_w_prop_5cat=cut_number(race_w_prop,5),
+    race_b_prop_5cat=cut_number(race_b_prop,5)
     ) %>% 
   #so I can see the vars easier, print them in this order
   dplyr::select(
@@ -183,21 +196,94 @@ atl_tracts_a1_geo = atl_tracts_a1_int_bmap_geo %>%
 names(atl_tracts_a1_geo)
 
 setwd(here("data-processed"))
+#load("atl_tracts_a1_geo.RData")
 save(atl_tracts_a1_geo, file = "atl_tracts_a1_geo.RData")
+#library(mapview)
+load("mp_sf_5halfmi.RData") #created  0_misc_XY_make buffer areas around places.R
+
+table(atl_tracts_a1_geo$pop_dens_km2_5cat,
+      atl_tracts_a1_geo$pop_dens_mi2_5cat)
+## look-ups-------
+#or just call it a nogeo version
+atl_tracts_a1_nogeo=atl_tracts_a1_geo %>% 
+  st_set_geometry(NULL) %>% 
+  as_tibble()
+
+atl_tracts_a1_nogeo
+save(atl_tracts_a1_nogeo,file="atl_tracts_a1_nogeo.RData")
+names(atl_tracts_a1_nogeo)
+
+# look up pop_dens_km2_5cat with the square mile vesrion
+#as I forgot to run the square km version through the analysis, but I need
+#to report in square km for aim 3 - May 22, 2023
+lookup_atl_tracts_pop_dens=atl_tracts_a1_nogeo %>% 
+  distinct(pop_dens_mi2_5cat,pop_dens_km2_5cat)
+lookup_atl_tracts_pop_dens
+
+save(lookup_atl_tracts_pop_dens,file="lookup_atl_tracts_pop_dens.RData")
+
+lookup_atl_tracts_pop_dens
+## checks and maps-----
+library(viridis)
 atl_tracts_a1_geo %>% 
   mapview(
     col.regions = viridis_pal(option = "C"),
     layer.name = "Proportion bike to work",
     zcol = "t_to_w_bike_prop")
+names(atl_tracts_a1_geo)
+summary(atl_tracts_a1_geo$pop_dens_mi2)
+atl_tracts_a1_geo %>% 
+  mapview(
+    zcol = "race_b_prop")
+atl_tracts_a1_geo %>% 
+  mapview(
+    zcol = "race_b_prop_5cat")
+atl_tracts_a1_geo %>% 
+  mapview(
+    zcol = "race_w_prop_5cat")
 
-#----------------------checks-------------------------------------------#
-# options(scipen = 100)
- # atl_tracts_a1_geo %>%  dplyr::select(contains("bike")) %>% View()
- # atl_tracts_a1_geo %>%  dplyr::select(contains("t_to_w")) %>% View()
-# atl_tracts_a1_geo %>%  dplyr::select(contains("race")) %>% View()
+atl_tracts_a1_geo %>% 
+  mapview(
+    zcol = "hh_inc_med_5cat")
+atl_tracts_a1_geo %>% 
+  filter(pop_dens_mi2<30000) %>% 
+  mapview(
+    zcol = "pop_dens_mi2")
+
+atl_tracts_a1_geo %>% 
+  mapview(
+    zcol = "pop_dens_mi2_5cat")
+
+atl_tracts_a1_geo %>% 
+  mapview(
+    zcol = "pop_dens_km2_5cat")
+
+atl_tracts_a1_geo %>% 
+  filter(pop_dens_km2>1000000) %>% 
+  dplyr::select(tract_id, starts_with("pop_dens")) %>% 
+  mapview()
+
+#what if I exclude 138?
+#Yea then 1,000,000 works fine.
+atl_tracts_a1_geo %>% 
+  st_set_geometry(NULL) %>% 
+  filter(tract_id!=138) %>% 
+  ggplot(aes(pop_dens_km2))+
+  geom_histogram()
+
+mv_pop_tot=atl_tracts_a1_geo %>% 
+  mapview(
+#    col.regions = viridis_pal(option = "C"),
+#    layer.name = "pop_dens_mi2",
+    zcol = "pop_tot")
+#Confirm that the aim 3 study area is contained within the map above.
+mv_mp_sf_5halfmi= mp_sf_5halfmi %>% mapview()
+mv_mp_sf_5halfmi+mv_pop_tot
+#okay, cool, so I can use the dataset created fro aim 1 in aim 3, as it's smaller.
 
 
-#-------Nationwide for my video abstract---------
+
+# Nationwide for my video abstract---------
 #Updated May 16, 2022
 
 library(tidyverse)
@@ -206,7 +292,7 @@ library(mapview) #loads leeaflet.
 library(tidycensus)
 library(here)
 
-#-------Gather ACS data from 2015-2019 5-year ACS-----##############
+## Gather ACS data from 2015-2019 5-year ACS------
 
 #note that they don't want us to compare 5-year ACS data year over year
 #https://www.census.gov/programs-surveys/acs/guidance/comparing-acs-data.html
@@ -267,8 +353,4 @@ nationwide_bike_wrangle %>%
     layer.name = "Percent Commute by Bike",
     zcol = "t_to_w_bike_perc_cat")
 
-
-#save to the analysis data folder rather than the other one to avoid having to change your working directory
-setwd(here("data-processed"))
-save(atl_tracts_acs5_20152019_geo, file = "atl_tracts_acs5_20152019_geo.RData")
 
