@@ -13,7 +13,7 @@ Map of bicycle infrastructure in August of 2018: <https://michaeldgarber.github.
 
 Map of infrastructure studied in 2022 *Epidemiology* [article](https://journals.lww.com/epidem/abstract/2022/07000/have_paved_trails_and_protected_bike_lanes_led_to.7.aspx):
 
-<https://michaeldgarber.github.io/diss/demo-read-convert-infra-data.html>
+<https://michaeldgarber.github.io/diss/atl-bike-gsynth.html>
 
 Demo to work with posted bike infrastructure data:
 

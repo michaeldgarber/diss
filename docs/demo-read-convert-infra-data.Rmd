@@ -32,7 +32,6 @@ Load spatial data
 ```{r, echo=T, warning=FALSE, message=FALSE}
 setwd(here("data-processed","data-to-share"))
 load("lookup_edge_geo.RData")
-
 ```
 
 How many observations in the spatial data?

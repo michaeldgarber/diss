@@ -7,8 +7,3 @@ navbar:
       text: "MDG"
     - text: "Atlanta bicycle infrastructure project"
       href: index.html
-output:
-  bookdown::html_document2:
-    toc: true 
-    toc_float: true
-    toc_depth: 4
