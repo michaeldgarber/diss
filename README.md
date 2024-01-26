@@ -1,2 +1,2 @@
 # Code related to my dissertation
-As of now, this repository includes code that gathers and manages data on bicycle infrastructure and a few other miscellaneous, publicly shareable scripts.
+This repository includes code that gathers and manages data on bicycle infrastructure and a few other miscellaneous, publicly shareable scripts.
