@@ -1,0 +1,76 @@
+---
+title: "Demo code to read bicycle infrastructure data and convert to other formats"
+author: "Michael D. Garber"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: false
+---
+
+This is a demo showing how the bicycle infrastructure data posted in this repository (<https://doi.org/10.7910/DVN/JE9OWB>) may be read into R and converted into other formats, such as shapefiles compatible with Esri software and CSVs.
+
+# Load R packages
+
+I use the [here](https://github.com/jennybc/here_here) package to manage relative folder paths. On my computer, the data are in a folder called "data-to-share", which is in a folder called, "data-processed", which is one level beneath the folder containing my RStudio project file. I use the [sf](https://r-spatial.github.io/sf/) package to manage the vector spatial data.
+
+```{r, echo=T, warning=FALSE, message=FALSE}
+library(here)
+library(sf)
+library(tidyverse)
+library(tmap) #static maps
+library(mapview) #interactive maps
+```
+
+# Read and explore data
+
+## Segments
+
+Load spatial data
+
+```{r, echo=T, warning=FALSE, message=FALSE}
+setwd(here("data-processed","data-to-share"))
+load("lookup_edge_geo.RData")
+
+```
+
+How many observations in the spatial data?
+
+```{r}
+nrow(lookup_edge_geo)
+```
+
+Map the segments
+
+```{r}
+lookup_edge_geo %>% 
+  tm_shape()+
+  tm_lines()
+```
+
+Load aspatial data with
+
+How many observations in the aspatial data?
+
+Map the infrastructure during the last month under observation
+
+## Intersections
+
+How many observations in the spatial data?
+
+How many observations in the aspatial data?
+
+# Convert intersections to points
+
+It may be desirable to convert intersections to points, as the file size is smaller. That can be done using `st_centroid()` from the sf package.
+
+# Convert spatial data to shapefiles
+
+Convert the segment-level data vector data to shapefiles:
+
+Convert the intersection-level vector data to shapefiles:
+
+# Convert aspatial data to CSVs
+
+Warning: the aspatial data contains x observations, and Excel 2010 is limited to [1,048,576 rows](https://support.microsoft.com/en-au/office/excel-specifications-and-limits-1672b34d-7043-467e-8e27-269d656771c3).

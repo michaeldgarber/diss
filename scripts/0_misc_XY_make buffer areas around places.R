@@ -40,6 +40,7 @@ st_crs(monpon_sf_ft) #good. in feet.
 mp_sf_ft = monpon_sf_ft #because I use this name in places
 save(mp_sf_ft, file = "mp_sf_ft.RData")
 
+## Create circular buffers around Monroe & Ponce-------
 monpon_sf_1mi = monpon_sf_ft %>% st_buffer(5280) %>%   st_transform(4326)
 monpon_sf_halfmi = monpon_sf_ft %>% st_buffer(5280/2) %>%   st_transform(4326)
 monpon_sf_2mi = monpon_sf_ft %>% st_buffer(2*5280) %>%   st_transform(4326)
@@ -56,27 +57,56 @@ save(mp_sf_halfmi, file = "mp_sf_halfmi.RData")
 save(mp_sf_1mi, file = "mp_sf_1mi.RData")
 save(mp_sf_2mi, file = "mp_sf_2mi.RData")
 
+load("monpon_sf_ft.RData")
 monpon_sf_5mi = monpon_sf_ft %>% 
   st_buffer(26400) %>%
   mutate(radius_name = "5-mi radius, Monroe & Ponce") %>% 
   st_transform(4326)
-  
-monpon_sf_5halfmi = 
-  monpon_sf_5mi = monpon_sf_ft %>%
+save(monpon_sf_5mi, file = "monpon_sf_5mi.RData")
+
+monpon_sf_5halfmi =monpon_sf_ft %>%
   st_buffer(29040) %>%
   mutate(radius_name = "5-and-half-mi radius, Monroe & Ponce") %>% 
   st_transform(4326)
+save(monpon_sf_5halfmi, file = "monpon_sf_5halfmi.RData")
+
+#Jan 22, 2024: how about six? That would let me keep more of the
+#work for the public dataset, and it's a simple number
+setwd(here("data-processed"))
+load("mp_sf_ft.RData")
+monpon_sf_6mi =mp_sf_ft %>%
+  st_buffer(5280*6) %>%
+  mutate(radius_name = "6-mi radius, Monroe & Ponce") %>% 
+  st_transform(4326)
+
+save(monpon_sf_6mi, file = "monpon_sf_6mi.RData")
+
+#seven?
+monpon_sf_7mi =mp_sf_ft %>%
+  st_buffer(5280*7) %>%
+  mutate(radius_name = "7-mi radius, Monroe & Ponce") %>% 
+  st_transform(4327)
+
+save(monpon_sf_7mi, file = "monpon_sf_7mi.RData")
+
+#Milton Street near Church St is about 6.5 miles from Monroe and Ponce
+#so try 6.5 miles
+monpon_sf_6halfmi =monpon_sf_ft %>%
+  st_buffer(6.5*5280) %>%
+  mutate(radius_name = "6-and-half-mi radius, Monroe & Ponce") %>% 
+  st_transform(4326)
+save(monpon_sf_6halfmi, file = "monpon_sf_6halfmi.RData")
+
 
 monpon_sf_8mi =  monpon_sf_ft %>%
   st_buffer(42240) %>%
   mutate(radius_name = "8-mi radius, Monroe & Ponce") %>% 
   st_transform(4326)
 
-save(monpon_sf_5mi, file = "monpon_sf_5mi.RData")
-save(monpon_sf_5halfmi, file = "monpon_sf_5halfmi.RData")
 save(monpon_sf_8mi, file = "monpon_sf_8mi.RData")
 
-#simplify the names and save. I typically use the mp vesrion throughout the rest of the code rather than the monpon version
+#simplify the names and save. I typically use the mp version 
+#throughout the rest of the code rather than the monpon version
 mp_sf_5mi = monpon_sf_5mi
 mp_sf_5halfmi = monpon_sf_5halfmi
 mp_sf_8mi = monpon_sf_8mi
@@ -85,7 +115,8 @@ save(mp_sf_5mi, file = "mp_sf_5mi.RData")
 save(mp_sf_5halfmi, file = "mp_sf_5halfmi.RData")
 save(mp_sf_8mi, file = "mp_sf_8mi.RData")
 
-#make a 12-mile one so it goes all the way around 285 and you can slice everything else out from it for
+#make a 12-mile one so it goes all the way around 285 and you can slice everything 
+#else out from it for
 mp_sf_12mi =  monpon_sf_ft %>%
   st_buffer(63360) %>%
   mutate(radius_name = "12-mi radius, Monroe & Ponce") %>% 
