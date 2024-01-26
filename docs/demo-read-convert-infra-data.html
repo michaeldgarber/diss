@@ -13,7 +13,7 @@
 
 <meta name="date" content="2024-01-26" />
 
-<title>Demo code to read bicycle infrastructure data and convert to other formats</title>
+<title>Read bicycle infrastructure data and convert to other formats: demo</title>
 
 <script src="site_libs/header-attrs-2.25/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -31,6 +31,9 @@
        h6 {font-size: 12px;}
        code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
        pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.13.2/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
@@ -223,6 +226,69 @@ $(document).ready(function () {
 
 
 
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
 
 </head>
 
@@ -230,6 +296,16 @@ $(document).ready(function () {
 
 
 <div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
 
 
 
@@ -286,8 +362,8 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">Demo code to read bicycle infrastructure
-data and convert to other formats</h1>
+<h1 class="title toc-ignore">Read bicycle infrastructure data and
+convert to other formats: demo</h1>
 <h4 class="author">Michael D. Garber</h4>
 <h4 class="date">2024-01-26</h4>
 
@@ -393,23 +469,26 @@ class="uri">https://michaeldgarber.github.io/diss/atl-bike-infra-201808</a></p>
 <p>How many observations in the aspatial data?</p>
 </div>
 </div>
-<div id="convert-intersections-to-points" class="section level1">
-<h1>Convert intersections to points</h1>
+<div id="convert-to-other-formats" class="section level1">
+<h1>Convert to other formats</h1>
+<div id="convert-intersections-to-points" class="section level2">
+<h2>Convert intersections to points</h2>
 <p>It may be desirable to convert intersections to points, as the file
 size is smaller. That can be done using <code>st_centroid()</code> from
 the sf package.</p>
 </div>
-<div id="convert-spatial-data-to-shapefiles" class="section level1">
-<h1>Convert spatial data to shapefiles</h1>
+<div id="convert-spatial-data-to-shapefiles" class="section level2">
+<h2>Convert spatial data to shapefiles</h2>
 <p>Convert the segment-level data vector data to shapefiles:</p>
 <p>Convert the intersection-level vector data to shapefiles:</p>
 </div>
-<div id="convert-aspatial-data-to-csvs" class="section level1">
-<h1>Convert aspatial data to CSVs</h1>
+<div id="convert-aspatial-data-to-csvs" class="section level2">
+<h2>Convert aspatial data to CSVs</h2>
 <p>Warning: the aspatial data contains 1,583,952 observations so may not
 load in Excel, as Excel 2010 is limited to <a
 href="https://support.microsoft.com/en-au/office/excel-specifications-and-limits-1672b34d-7043-467e-8e27-269d656771c3">1,048,576
 rows</a>.</p>
+</div>
 </div>
 
 <br>
@@ -417,6 +496,8 @@ rows</a>.</p>
 <p>Copyright &copy; 2024 Michael D. Garber </p>
 
 
+</div>
+</div>
 
 </div>
 
@@ -449,6 +530,35 @@ $(document).ready(function () {
 
 <!-- code folding -->
 
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
 
 <!-- dynamically load mathjax for compatibility with self-contained -->
 <script>

@@ -1,5 +1,5 @@
 ---
-title: "Demo code to read bicycle infrastructure data and convert to other formats"
+title: "Read bicycle infrastructure data and convert to other formats: demo"
 author: "Michael D. Garber"
 date: "`r Sys.Date()`"
 output:
@@ -94,16 +94,17 @@ How many observations in the spatial data?
 
 How many observations in the aspatial data?
 
-# Convert intersections to points
+# Convert to other formats 
+## Convert intersections to points
 
 It may be desirable to convert intersections to points, as the file size is smaller. That can be done using `st_centroid()` from the sf package.
 
-# Convert spatial data to shapefiles
+## Convert spatial data to shapefiles
 
 Convert the segment-level data vector data to shapefiles:
 
 Convert the intersection-level vector data to shapefiles:
 
-# Convert aspatial data to CSVs
+## Convert aspatial data to CSVs
 
 Warning: the aspatial data contains 1,583,952 observations so may not load in Excel, as Excel 2010 is limited to [1,048,576 rows](https://support.microsoft.com/en-au/office/excel-specifications-and-limits-1672b34d-7043-467e-8e27-269d656771c3).
