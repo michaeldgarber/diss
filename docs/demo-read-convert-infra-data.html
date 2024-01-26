@@ -358,7 +358,8 @@ div.tocify {
 library(sf)
 library(tidyverse)
 library(tmap) #static maps
-library(mapview) #interactive maps</code></pre>
+library(mapview) #interactive maps
+library(knitr)#to use kable</code></pre>
 </div>
 <div id="read-and-explore-data" class="section level1" number="2">
 <h1><span class="header-section-number">2</span> Read and explore data</h1>
@@ -392,7 +393,7 @@ load(&quot;edge_month_share.RData&quot;)</code></pre>
   filter(study_month==24) %&gt;% 
   group_by(infra_6cat_long_legend_nodirt) %&gt;%
   summarise(length_mi=sum(length_mi,na.rm=TRUE)) %&gt;% 
-  knitr::kable()</code></pre>
+  kable()</code></pre>
 <table>
 <thead>
 <tr class="header">
@@ -432,7 +433,59 @@ load(&quot;edge_month_share.RData&quot;)</code></pre>
 </div>
 <div id="intersections" class="section level2" number="2.2">
 <h2><span class="header-section-number">2.2</span> Intersections</h2>
-<p>How many observations in the spatial data?</p>
+<p>Load spatial data on intersections</p>
+<pre class="r"><code>setwd(here(&quot;data-processed&quot;,&quot;data-to-share&quot;))
+load(&quot;lookup_inters_geo.RData&quot;)
+names(lookup_inters_geo)</code></pre>
+<pre><code>## [1] &quot;inters_id&quot; &quot;geometry&quot;</code></pre>
+<p>How many intersections?</p>
+<pre class="r"><code>nrow(lookup_inters_geo)</code></pre>
+<pre><code>## [1] 7813</code></pre>
+<p>Load the one-to-many look-up table between intersections and edges</p>
+<pre class="r"><code>setwd(here(&quot;data-processed&quot;,&quot;data-to-share&quot;))
+load(&quot;lookup_inters_edge_nogeo.RData&quot;)</code></pre>
+<p>How many edges per intersection?</p>
+<pre class="r"><code>lookup_inters_edge_nogeo %&gt;% 
+  group_by(inters_id) %&gt;% 
+  summarise(n_edges=n()) %&gt;% 
+  ungroup() %&gt;% 
+  mutate(dummy=1) %&gt;% 
+  group_by(dummy) %&gt;% 
+  summarise(
+    n_edges_per_inters_mean=mean(n_edges,na.rm=T),
+    n_edges_per_inters_med=median(n_edges,na.rm=T),
+    n_edges_per_inters_min=min(n_edges,na.rm=T),
+    n_edges_per_inters_max=max(n_edges,na.rm=T)
+    ) %&gt;% 
+  pivot_longer(-contains(&quot;dummy&quot;)) %&gt;% 
+  dplyr::select(-contains(&quot;dummy&quot;)) %&gt;% 
+  kable()</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">name</th>
+<th align="right">value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">n_edges_per_inters_mean</td>
+<td align="right">3.795085</td>
+</tr>
+<tr class="even">
+<td align="left">n_edges_per_inters_med</td>
+<td align="right">3.000000</td>
+</tr>
+<tr class="odd">
+<td align="left">n_edges_per_inters_min</td>
+<td align="right">1.000000</td>
+</tr>
+<tr class="even">
+<td align="left">n_edges_per_inters_max</td>
+<td align="right">55.000000</td>
+</tr>
+</tbody>
+</table>
 <p>How many observations in the aspatial data?</p>
 </div>
 </div>
@@ -441,14 +494,33 @@ load(&quot;edge_month_share.RData&quot;)</code></pre>
 <div id="convert-intersections-to-points" class="section level2" number="3.1">
 <h2><span class="header-section-number">3.1</span> Convert intersections to points</h2>
 <p>It may be desirable to convert intersections to points, as the file size is smaller. That can be done using <code>st_centroid()</code> from the sf package.</p>
+<pre class="r"><code>lookup_inters_point_geo=lookup_inters_geo %&gt;% 
+  st_centroid()</code></pre>
+<p>Map the intersections represented as points:</p>
+<pre class="r"><code>lookup_inters_point_geo %&gt;% 
+  tm_shape()+
+  tm_dots()</code></pre>
+<p><img src="demo-read-convert-infra-data_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
 </div>
 <div id="convert-spatial-data-to-shapefiles" class="section level2" number="3.2">
 <h2><span class="header-section-number">3.2</span> Convert spatial data to shapefiles</h2>
-<p>Convert the segment-level data vector data to shapefiles:</p>
+<p>Convert the segment-level vector data data to shapefiles:</p>
+<pre class="r"><code>setwd(here(&quot;data-processed&quot;,&quot;data-to-share&quot;,&quot;shapefiles-edge&quot;))
+st_write(lookup_edge_geo, 
+         dsn = &quot;lookup_edge_geo.shp&quot;,
+         append=FALSE,#overwrite
+         layer = &quot;lookup_edge_geo.shp&quot;, driver = &quot;ESRI Shapefile&quot;)</code></pre>
 <p>Convert the intersection-level vector data to shapefiles:</p>
+<pre class="r"><code>setwd(here(&quot;data-processed&quot;,&quot;data-to-share&quot;,&quot;shapefiles-intersection&quot;))
+st_write(lookup_inters_geo, 
+         dsn = &quot;lookup_inters_geo.shp&quot;,
+         append=FALSE,#overwrite
+         layer = &quot;lookup_inters_geo.shp&quot;, driver = &quot;ESRI Shapefile&quot;)</code></pre>
 </div>
 <div id="convert-aspatial-data-to-csvs" class="section level2" number="3.3">
 <h2><span class="header-section-number">3.3</span> Convert aspatial data to CSVs</h2>
+<pre class="r"><code>setwd(here(&quot;data-processed&quot;,&quot;data-to-share&quot;,&quot;csv&quot;))
+write_csv(edge_month_share,file=&quot;edge_month_share.csv&quot;)</code></pre>
 <p>Warning: the aspatial data contains 1,583,952 observations so may not load in Excel, as Excel 2010 is limited to <a href="https://support.microsoft.com/en-au/office/excel-specifications-and-limits-1672b34d-7043-467e-8e27-269d656771c3">1,048,576 rows</a>.</p>
 </div>
 </div>

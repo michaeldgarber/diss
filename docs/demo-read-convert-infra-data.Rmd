@@ -21,6 +21,7 @@ library(sf)
 library(tidyverse)
 library(tmap) #static maps
 library(mapview) #interactive maps
+library(knitr)#to use kable
 ```
 
 # Read and explore data
@@ -80,7 +81,7 @@ edge_month_share %>%
   filter(study_month==24) %>% 
   group_by(infra_6cat_long_legend_nodirt) %>%
   summarise(length_mi=sum(length_mi,na.rm=TRUE)) %>% 
-  knitr::kable()
+  kable()
 ```
 
 The bicycle infrastructure data in August of 2018 are mapped here:
@@ -88,8 +89,42 @@ The bicycle infrastructure data in August of 2018 are mapped here:
 <https://michaeldgarber.github.io/diss/atl-bike-infra-201808>
 
 ## Intersections
+Load spatial data on intersections
+```{r, echo=T, warning=FALSE, message=FALSE}
+setwd(here("data-processed","data-to-share"))
+load("lookup_inters_geo.RData")
+names(lookup_inters_geo)
+```
 
-How many observations in the spatial data?
+How many intersections?
+```{r}
+nrow(lookup_inters_geo)
+```
+
+Load the one-to-many look-up table between intersections and edges
+```{r, echo=T, warning=FALSE, message=FALSE}
+setwd(here("data-processed","data-to-share"))
+load("lookup_inters_edge_nogeo.RData")
+```
+
+How many edges per intersection?
+```{r}
+lookup_inters_edge_nogeo %>% 
+  group_by(inters_id) %>% 
+  summarise(n_edges=n()) %>% 
+  ungroup() %>% 
+  mutate(dummy=1) %>% 
+  group_by(dummy) %>% 
+  summarise(
+    n_edges_per_inters_mean=mean(n_edges,na.rm=T),
+    n_edges_per_inters_med=median(n_edges,na.rm=T),
+    n_edges_per_inters_min=min(n_edges,na.rm=T),
+    n_edges_per_inters_max=max(n_edges,na.rm=T)
+    ) %>% 
+  pivot_longer(-contains("dummy")) %>% 
+  dplyr::select(-contains("dummy")) %>% 
+  kable()
+```
 
 How many observations in the aspatial data?
 
@@ -97,13 +132,48 @@ How many observations in the aspatial data?
 ## Convert intersections to points
 
 It may be desirable to convert intersections to points, as the file size is smaller. That can be done using `st_centroid()` from the sf package.
+```{r, echo=F, warning=FALSE, message=FALSE}
+setwd(here("data-processed","data-to-share"))
+load("lookup_inters_point_geo.RData")
+```
+
+```{r, eval=F, warning=FALSE, message=FALSE}
+lookup_inters_point_geo=lookup_inters_geo %>% 
+  st_centroid()
+```
+
+Map the intersections represented as points:
+```{r, eval=T, warning=FALSE, message=FALSE}
+lookup_inters_point_geo %>% 
+  tm_shape()+
+  tm_dots()
+```
+
 
 ## Convert spatial data to shapefiles
 
-Convert the segment-level data vector data to shapefiles:
+Convert the segment-level vector data data to shapefiles:
+```{r, eval=F, echo=T, warning=FALSE, message=FALSE}
+setwd(here("data-processed","data-to-share","shapefiles-edge"))
+st_write(lookup_edge_geo, 
+         dsn = "lookup_edge_geo.shp",
+         append=FALSE,#overwrite
+         layer = "lookup_edge_geo.shp", driver = "ESRI Shapefile")
+```
 
 Convert the intersection-level vector data to shapefiles:
+```{r, eval=F, echo=T, warning=FALSE, message=FALSE}
+setwd(here("data-processed","data-to-share","shapefiles-intersection"))
+st_write(lookup_inters_geo, 
+         dsn = "lookup_inters_geo.shp",
+         append=FALSE,#overwrite
+         layer = "lookup_inters_geo.shp", driver = "ESRI Shapefile")
+```
 
 ## Convert aspatial data to CSVs
+```{r, eval=F, echo=T, warning=FALSE, message=FALSE}
+setwd(here("data-processed","data-to-share","csv"))
+write_csv(edge_month_share,file="edge_month_share.csv")
+```
 
 Warning: the aspatial data contains 1,583,952 observations so may not load in Excel, as Excel 2010 is limited to [1,048,576 rows](https://support.microsoft.com/en-au/office/excel-specifications-and-limits-1672b34d-7043-467e-8e27-269d656771c3).
