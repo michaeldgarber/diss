@@ -1,13 +1,20 @@
 ---
-title: "Dissertation-related posts"
-output:
-  html_document:
-    highlight: textmate
-    include:
-      after_body: footer.html
+title: "Atlanta bicycle infrastructure project"
+author: "Michael D. Garber, PhD MPH"
+date: "`r Sys.Date()`"
+output: 
+  bookdown::html_document2:
+    toc: FALSE #overwrite the _yml
 ---
 
-A page for dissertation-related updates.
-So far, I have this dissertation-related post:
+URL of this page: <https://michaeldgarber.github.io/diss/index.html>
 
-https://michaeldgarber.github.io/diss/atl-bike-gsynth.html
+Map of bicycle infrastructure in August of 2018: <https://michaeldgarber.github.io/diss/atl-bike-infra-201808>
+
+Map of infrastructure studied in 2022 *Epidemiology* [article](https://journals.lww.com/epidem/abstract/2022/07000/have_paved_trails_and_protected_bike_lanes_led_to.7.aspx):
+
+<https://michaeldgarber.github.io/diss/demo-read-convert-infra-data.html>
+
+Demo to work with posted bike infrastructure data:
+
+<https://michaeldgarber.github.io/diss/demo-read-convert-infra-data.html>

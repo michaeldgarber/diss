@@ -1,18 +1,14 @@
-name: "Michael Garber"
+name: "diss"
 output_dir: "."
 navbar:
   left:
     - icon: fa-home
-      href: https://michaeldgarber.github.io/index.html
+      href: https://michaeldgarber.github.io/
       text: "MDG"
-    - text: "Papers"
-      href: https://michaeldgarber.github.io/papers.html
-    - text: "Posts"
-      href: https://michaeldgarber.github.io/posts.html
-    - text: "Teaching"
-      href: https://michaeldgarber.github.io/teaching.html
-    - text: "Projects"
-      href: https://michaeldgarber.github.io/projects.html
-      menu:
-        - text: "green-space-denver"
-          href: https://michaeldgarber.github.io/green-space-denver/
+    - text: "Atlanta bicycle infrastructure project"
+      href: index.html
+output:
+  bookdown::html_document2:
+    toc: true 
+    toc_float: true
+    toc_depth: 4

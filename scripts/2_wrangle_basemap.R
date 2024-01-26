@@ -1231,7 +1231,8 @@ bmap_edge_join_wrangle0 = bmap_edge_join_geo %>%
       infra_6cat_none_abbrev == "trail_p" ~0,  
       infra_6cat_none_abbrev == "trail_d" ~ 0,
       
-      is.na(highway_6cat_ordered_with_trunk)==TRUE ~ 1, #else if it's missing but not a trail
+      #else if it's missing but not a trail
+      is.na(highway_6cat_ordered_with_trunk)==TRUE ~ 1, 
       
       TRUE ~ 0),
     
