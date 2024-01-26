@@ -16,11 +16,3 @@ navbar:
       menu:
         - text: "green-space-denver"
           href: https://michaeldgarber.github.io/green-space-denver/
-
-output:
-  html_document:
-    toc: true
-    toc_float: true
-    highlight: textmate
-    include:
-      after_body: footer.html

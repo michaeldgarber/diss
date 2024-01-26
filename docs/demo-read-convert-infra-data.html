@@ -15,7 +15,6 @@
 
 <title>Read bicycle infrastructure data and convert to other formats: demo</title>
 
-<script src="site_libs/header-attrs-2.25/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
@@ -35,7 +34,7 @@
 <link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
 <script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
-<link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
 <link href="site_libs/font-awesome-6.4.2/css/all.min.css" rel="stylesheet" />
 <link href="site_libs/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet" />
@@ -362,38 +361,27 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Read bicycle infrastructure data and
-convert to other formats: demo</h1>
+<h1 class="title toc-ignore">Read bicycle infrastructure data and convert to other formats: demo</h1>
 <h4 class="author">Michael D. Garber</h4>
 <h4 class="date">2024-01-26</h4>
 
 </div>
 
 
-<p>This is a demo showing how the bicycle infrastructure data posted in
-this repository (<a href="https://doi.org/10.7910/DVN/JE9OWB"
-class="uri">https://doi.org/10.7910/DVN/JE9OWB</a>) may be read into R
-and converted into other formats, such as shapefiles compatible with
-Esri software and CSVs.</p>
-<div id="load-r-packages" class="section level1">
-<h1>Load R packages</h1>
-<p>I use the <a href="https://github.com/jennybc/here_here">here</a>
-package to manage relative folder paths. On my computer, the data are in
-a folder called “data-to-share”, which is in a folder called,
-“data-processed”, which is one level beneath the folder containing my
-RStudio project file. I use the <a
-href="https://r-spatial.github.io/sf/">sf</a> package to manage the
-vector spatial data.</p>
+<p>This is a demo showing how the bicycle infrastructure data posted in this repository (<a href="https://doi.org/10.7910/DVN/JE9OWB" class="uri">https://doi.org/10.7910/DVN/JE9OWB</a>) may be read into R and converted into other formats, such as shapefiles compatible with Esri software and CSVs.</p>
+<div id="load-r-packages" class="section level1" number="1">
+<h1><span class="header-section-number">1</span> Load R packages</h1>
+<p>I use the <a href="https://github.com/jennybc/here_here">here</a> package to manage relative folder paths. On my computer, the data are in a folder called “data-to-share”, which is in a folder called, “data-processed”, which is one level beneath the folder containing my RStudio project file. I use the <a href="https://r-spatial.github.io/sf/">sf</a> package to manage the vector spatial data.</p>
 <pre class="r"><code>library(here)
 library(sf)
 library(tidyverse)
 library(tmap) #static maps
 library(mapview) #interactive maps</code></pre>
 </div>
-<div id="read-and-explore-data" class="section level1">
-<h1>Read and explore data</h1>
-<div id="segments" class="section level2">
-<h2>Segments</h2>
+<div id="read-and-explore-data" class="section level1" number="2">
+<h1><span class="header-section-number">2</span> Read and explore data</h1>
+<div id="segments" class="section level2" number="2.1">
+<h2><span class="header-section-number">2.1</span> Segments</h2>
 <p>Load spatial data</p>
 <pre class="r"><code>setwd(here(&quot;data-processed&quot;,&quot;data-to-share&quot;))
 load(&quot;lookup_edge_geo.RData&quot;)</code></pre>
@@ -417,8 +405,7 @@ load(&quot;edge_month_share.RData&quot;)</code></pre>
 <p>How many months?</p>
 <pre class="r"><code>n_distinct(edge_month_share$study_month)</code></pre>
 <pre><code>## [1] 24</code></pre>
-<p>How many miles of bicycle infrastructure during the last study
-month?</p>
+<p>How many miles of bicycle infrastructure during the last study month?</p>
 <pre class="r"><code>edge_month_share %&gt;% 
   filter(study_month==24) %&gt;% 
   group_by(infra_6cat_long_legend_nodirt) %&gt;%
@@ -458,42 +445,32 @@ month?</p>
 </tr>
 </tbody>
 </table>
-<p>The bicycle infrastructure data in August of 2018 are mapped
-here:</p>
-<p><a href="https://michaeldgarber.github.io/diss/atl-bike-infra-201808"
-class="uri">https://michaeldgarber.github.io/diss/atl-bike-infra-201808</a></p>
+<p>The bicycle infrastructure data in August of 2018 are mapped here:</p>
+<p><a href="https://michaeldgarber.github.io/diss/atl-bike-infra-201808" class="uri">https://michaeldgarber.github.io/diss/atl-bike-infra-201808</a></p>
 </div>
-<div id="intersections" class="section level2">
-<h2>Intersections</h2>
+<div id="intersections" class="section level2" number="2.2">
+<h2><span class="header-section-number">2.2</span> Intersections</h2>
 <p>How many observations in the spatial data?</p>
 <p>How many observations in the aspatial data?</p>
 </div>
 </div>
-<div id="convert-to-other-formats" class="section level1">
-<h1>Convert to other formats</h1>
-<div id="convert-intersections-to-points" class="section level2">
-<h2>Convert intersections to points</h2>
-<p>It may be desirable to convert intersections to points, as the file
-size is smaller. That can be done using <code>st_centroid()</code> from
-the sf package.</p>
+<div id="convert-to-other-formats" class="section level1" number="3">
+<h1><span class="header-section-number">3</span> Convert to other formats</h1>
+<div id="convert-intersections-to-points" class="section level2" number="3.1">
+<h2><span class="header-section-number">3.1</span> Convert intersections to points</h2>
+<p>It may be desirable to convert intersections to points, as the file size is smaller. That can be done using <code>st_centroid()</code> from the sf package.</p>
 </div>
-<div id="convert-spatial-data-to-shapefiles" class="section level2">
-<h2>Convert spatial data to shapefiles</h2>
+<div id="convert-spatial-data-to-shapefiles" class="section level2" number="3.2">
+<h2><span class="header-section-number">3.2</span> Convert spatial data to shapefiles</h2>
 <p>Convert the segment-level data vector data to shapefiles:</p>
 <p>Convert the intersection-level vector data to shapefiles:</p>
 </div>
-<div id="convert-aspatial-data-to-csvs" class="section level2">
-<h2>Convert aspatial data to CSVs</h2>
-<p>Warning: the aspatial data contains 1,583,952 observations so may not
-load in Excel, as Excel 2010 is limited to <a
-href="https://support.microsoft.com/en-au/office/excel-specifications-and-limits-1672b34d-7043-467e-8e27-269d656771c3">1,048,576
-rows</a>.</p>
+<div id="convert-aspatial-data-to-csvs" class="section level2" number="3.3">
+<h2><span class="header-section-number">3.3</span> Convert aspatial data to CSVs</h2>
+<p>Warning: the aspatial data contains 1,583,952 observations so may not load in Excel, as Excel 2010 is limited to <a href="https://support.microsoft.com/en-au/office/excel-specifications-and-limits-1672b34d-7043-467e-8e27-269d656771c3">1,048,576 rows</a>.</p>
 </div>
 </div>
 
-<br>
-<br>
-<p>Copyright &copy; 2024 Michael D. Garber </p>
 
 
 </div>
@@ -543,7 +520,7 @@ $(document).ready(function ()  {
 
     // establish options
     var options = {
-      selectors: "h1,h2,h3",
+      selectors: "h1,h2,h3,h4",
       theme: "bootstrap3",
       context: '.toc-content',
       hashGenerator: function (text) {
