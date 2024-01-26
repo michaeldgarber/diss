@@ -31,9 +31,6 @@
        h6 {font-size: 12px;}
        code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
        pre:not([class]) { background-color: white }</style>
-<script src="site_libs/jqueryui-1.13.2/jquery-ui.min.js"></script>
-<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
-<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
@@ -226,69 +223,6 @@ $(document).ready(function () {
 
 
 
-<style type="text/css">
-
-#TOC {
-  margin: 25px 0px 20px 0px;
-}
-@media (max-width: 768px) {
-#TOC {
-  position: relative;
-  width: 100%;
-}
-}
-
-@media print {
-.toc-content {
-  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
-  float: right;
-}
-}
-
-.toc-content {
-  padding-left: 30px;
-  padding-right: 40px;
-}
-
-div.main-container {
-  max-width: 1200px;
-}
-
-div.tocify {
-  width: 20%;
-  max-width: 260px;
-  max-height: 85%;
-}
-
-@media (min-width: 768px) and (max-width: 991px) {
-  div.tocify {
-    width: 25%;
-  }
-}
-
-@media (max-width: 767px) {
-  div.tocify {
-    width: 100%;
-    max-width: none;
-  }
-}
-
-.tocify ul, .tocify li {
-  line-height: 20px;
-}
-
-.tocify-subheader .tocify-item {
-  font-size: 0.90em;
-}
-
-.tocify .list-group-item {
-  border-radius: 0px;
-}
-
-
-</style>
-
-
 
 </head>
 
@@ -296,16 +230,6 @@ div.tocify {
 
 
 <div class="container-fluid main-container">
-
-
-<!-- setup 3col/9col grid for toc_float and main content  -->
-<div class="row">
-<div class="col-xs-12 col-sm-4 col-md-3">
-<div id="TOC" class="tocify">
-</div>
-</div>
-
-<div class="toc-content col-xs-12 col-sm-8 col-md-9">
 
 
 
@@ -405,9 +329,63 @@ load(&quot;lookup_edge_geo.RData&quot;)</code></pre>
   tm_shape()+
   tm_lines()</code></pre>
 <p><img src="demo-read-convert-infra-data_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
-<p>Load aspatial data with</p>
-<p>How many observations in the aspatial data?</p>
-<p>Map the infrastructure during the last month under observation</p>
+<p>Load aspatial data</p>
+<pre class="r"><code>setwd(here(&quot;data-processed&quot;,&quot;data-to-share&quot;))
+load(&quot;edge_month_share.RData&quot;)</code></pre>
+<p>How many observations are in the aspatial data?</p>
+<pre class="r"><code>nrow(edge_month_share)</code></pre>
+<pre><code>## [1] 1583952</code></pre>
+<p>How many unique edge_ids?</p>
+<pre class="r"><code>n_distinct(edge_month_share$edge_id)</code></pre>
+<pre><code>## [1] 65998</code></pre>
+<p>How many months?</p>
+<pre class="r"><code>n_distinct(edge_month_share$study_month)</code></pre>
+<pre><code>## [1] 24</code></pre>
+<p>How many miles of bicycle infrastructure during the last study
+month?</p>
+<pre class="r"><code>edge_month_share %&gt;% 
+  filter(study_month==24) %&gt;% 
+  group_by(infra_6cat_long_legend_nodirt) %&gt;%
+  summarise(length_mi=sum(length_mi,na.rm=TRUE)) %&gt;% 
+  knitr::kable()</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">infra_6cat_long_legend_nodirt</th>
+<th align="right">length_mi</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">1-Trail-Paved</td>
+<td align="right">50.542977</td>
+</tr>
+<tr class="even">
+<td align="left">2-Lane-Protected</td>
+<td align="right">4.734300</td>
+</tr>
+<tr class="odd">
+<td align="left">3-Lane-Buffered</td>
+<td align="right">3.576227</td>
+</tr>
+<tr class="even">
+<td align="left">4-Lane-Conventional</td>
+<td align="right">55.307372</td>
+</tr>
+<tr class="odd">
+<td align="left">5-Sharrow</td>
+<td align="right">36.912441</td>
+</tr>
+<tr class="even">
+<td align="left">none</td>
+<td align="right">2254.033111</td>
+</tr>
+</tbody>
+</table>
+<p>The bicycle infrastructure data in August of 2018 are mapped
+here:</p>
+<p><a href="https://michaeldgarber.github.io/diss/atl-bike-infra-201808"
+class="uri">https://michaeldgarber.github.io/diss/atl-bike-infra-201808</a></p>
 </div>
 <div id="intersections" class="section level2">
 <h2>Intersections</h2>
@@ -428,8 +406,8 @@ the sf package.</p>
 </div>
 <div id="convert-aspatial-data-to-csvs" class="section level1">
 <h1>Convert aspatial data to CSVs</h1>
-<p>Warning: the aspatial data contains x observations, and Excel 2010 is
-limited to <a
+<p>Warning: the aspatial data contains 1,583,952 observations so may not
+load in Excel, as Excel 2010 is limited to <a
 href="https://support.microsoft.com/en-au/office/excel-specifications-and-limits-1672b34d-7043-467e-8e27-269d656771c3">1,048,576
 rows</a>.</p>
 </div>
@@ -439,8 +417,6 @@ rows</a>.</p>
 <p>Copyright &copy; 2024 Michael D. Garber </p>
 
 
-</div>
-</div>
 
 </div>
 
@@ -473,35 +449,6 @@ $(document).ready(function () {
 
 <!-- code folding -->
 
-<script>
-$(document).ready(function ()  {
-
-    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
-    $('.unlisted.unnumbered').addClass('toc-ignore')
-
-    // move toc-ignore selectors from section div to header
-    $('div.section.toc-ignore')
-        .removeClass('toc-ignore')
-        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
-
-    // establish options
-    var options = {
-      selectors: "h1,h2,h3",
-      theme: "bootstrap3",
-      context: '.toc-content',
-      hashGenerator: function (text) {
-        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
-      },
-      ignoreSelector: ".toc-ignore",
-      scrollTo: 0
-    };
-    options.showAndHide = true;
-    options.smoothScroll = true;
-
-    // tocify
-    var toc = $("#TOC").tocify(options).data("toc-tocify");
-});
-</script>
 
 <!-- dynamically load mathjax for compatibility with self-contained -->
 <script>
