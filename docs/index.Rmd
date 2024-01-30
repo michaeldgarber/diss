@@ -1,5 +1,5 @@
 ---
-title: "Atlanta bicycle infrastructure project"
+title: "Health impacts of bicycle infrastructure in Atlanta, Georgia"
 author: "Michael D. Garber, PhD MPH"
 date: "`r Sys.Date()`"
 output: 
@@ -9,12 +9,26 @@ output:
 
 URL of this page: <https://michaeldgarber.github.io/diss/index.html>
 
-Map of bicycle infrastructure in August of 2018: <https://michaeldgarber.github.io/diss/atl-bike-infra-201808>
+Web material:
 
-Map of infrastructure studied in 2022 *Epidemiology* [article](https://journals.lww.com/epidem/abstract/2022/07000/have_paved_trails_and_protected_bike_lanes_led_to.7.aspx):
+-   Map of bicycle infrastructure in August of 2018: <https://michaeldgarber.github.io/diss/atl-bike-infra-201808>
 
-<https://michaeldgarber.github.io/diss/atl-bike-gsynth.html>
+-   Map of infrastructure studied in 2022 *Epidemiology* [article](https://journals.lww.com/epidem/abstract/2022/07000/have_paved_trails_and_protected_bike_lanes_led_to.7.aspx):
 
-Demo to work with posted bike infrastructure data:
+    <https://michaeldgarber.github.io/diss/atl-bike-gsynth.html>
 
-<https://michaeldgarber.github.io/diss/demo-read-convert-infra-data.html>
+-   Demo to work with posted bike infrastructure data:
+
+    <https://michaeldgarber.github.io/diss/demo-read-convert-infra-data.html>
+
+Related articles:
+
+-   [Bicycle infrastructure and the incidence rate of crashes with cars: A case-control study with Strava data in Atlanta](https://www.sciencedirect.com/science/article/abs/pii/S2214140523001056). *Journal of Transport & Health*. 2023.
+
+-   [Have paved trails and protected bike lanes led to more bicycling in Atlanta? A generalized synthetic-control analysis](https://journals.lww.com/epidem/abstract/2022/07000/have_paved_trails_and_protected_bike_lanes_led_to.7.aspx). *Epidemiology*. 2022.
+
+-   [At-risk-measure sampling in case-control studies with aggregated data](https://journals.lww.com/epidem/fulltext/2021/01000/at_risk_measure_sampling_in_case_control_studies.14.aspx). *Epidemiology*. 2021.
+
+Funding: [1F31HL143900-01](https://reporter.nih.gov/project-details/9611122)
+
+Github repository: <https://github.com/michaeldgarber/diss>
