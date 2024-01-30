@@ -17,7 +17,7 @@ Web material:
 
     <https://michaeldgarber.github.io/diss/atl-bike-gsynth.html>
 
--   Demo to work with posted bike infrastructure data:
+-   Demo to work with bike infrastructure data:
 
     <https://michaeldgarber.github.io/diss/demo-read-convert-infra-data.html>
 
