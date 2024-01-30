@@ -9,7 +9,7 @@ output:
     toc_depth: 4
 ---
 
-This is a demo showing how the bicycle infrastructure data posted in this repository (<https://doi.org/10.7910/DVN/JE9OWB>) may be read into R and converted into other formats, such as shapefiles compatible with Esri software and CSVs.
+This is a demo showing how the bicycle infrastructure data that I may post publicly may be read into R and converted into other formats, such as shapefiles compatible with Esri software and CSVs.
 
 # Load R packages
 
