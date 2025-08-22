@@ -1,21 +1,18 @@
 ---
 title: "Health impacts of bicycle infrastructure in Atlanta, Georgia"
 author: "Michael D. Garber, PhD MPH"
-date: "`r Sys.Date()`"
 output: 
   bookdown::html_document2:
     toc: FALSE #overwrite the _yml
 ---
 
-Web material:
+**Interactive maps:**
 
 -   Map of bicycle infrastructure in August of 2018: <https://michaeldgarber.github.io/diss/atl-bike-infra-201808>
 
 -   Map of infrastructure studied in 2022 *Epidemiology* [article](https://journals.lww.com/epidem/abstract/2022/07000/have_paved_trails_and_protected_bike_lanes_led_to.7.aspx): <https://michaeldgarber.github.io/diss/atl-bike-gsynth.html>
 
-
-
-Related articles:
+**Related articles:**
 
 -   [Bicycle infrastructure and the incidence rate of crashes with cars: A case-control study with Strava data in Atlanta](https://www.sciencedirect.com/science/article/abs/pii/S2214140523001056). *Journal of Transport & Health*. 2023.
 
@@ -28,4 +25,3 @@ Funding: [1F31HL143900-01](https://reporter.nih.gov/project-details/9611122)
 GitHub repository: <https://github.com/michaeldgarber/diss>
 
 URL of this page: <https://michaeldgarber.github.io/diss/index.html>
-

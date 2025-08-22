@@ -1,11 +1,13 @@
 ---
 title: "Roadway type as classified by OpenStreetMap"
 author: "Michael D Garber"
-date: "`r Sys.Date()`"
 output: html_document
 ---
 
 Roadway type of roads in Atlanta within a 5.5-mile radius around Ponce de Leon Ave NE and Monroe Dr NE. This excludes interstate highways, service roads, and unclassified roads.
+
+This map was created in 2023.
+
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 library(tidyverse)
 library(sf)

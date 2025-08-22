@@ -10,7 +10,7 @@ output:
 ---
 
 Update June 5th, 2023. Removing pop-ups for speed.
-Update Jul 22, 2023: I'm updating the other file as well, so these shoudl be identical.
+Update Jul 22, 2023: I'm updating the other file as well, so these should be identical.
 
 
 # Map of bicycle infrastructure in Atlanta
