@@ -2,7 +2,7 @@
 title: "Effect of bicycle infrastructure on bicycling in Atlanta: interactive map"
 author: "Michael D Garber"
 date: "Updated April 28 2022"
-output: 
+output:
   html_document:
     toc: true  
     toc_float: true
