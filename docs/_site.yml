@@ -1,9 +1,16 @@
 name: "diss"
 output_dir: "."
 navbar:
+  type: inverse #inverse the background color
   left:
     - icon: fa-home
       href: https://michaeldgarber.github.io/
       text: "MDG"
     - text: "Atlanta bicycle infrastructure project"
       href: index.html
+
+output:
+  html_document:
+    theme: yeti
+    include:
+      after_body: footer.html

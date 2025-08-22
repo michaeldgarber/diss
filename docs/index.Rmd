@@ -1,6 +1,6 @@
 ---
 title: "Health impacts of bicycle infrastructure in Atlanta, Georgia"
-author: "Michael D. Garber, PhD MPH"
+#author: "Michael D. Garber, PhD MPH"
 output: 
   bookdown::html_document2:
     toc: FALSE #overwrite the _yml
