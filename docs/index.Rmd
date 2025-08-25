@@ -1,5 +1,5 @@
 ---
-title: "Health impacts of bicycle infrastructure in Atlanta, Georgia"
+title: "Effects of bicycle infrastructure on ridership and safety in Atlanta"
 #author: "Michael D. Garber, PhD MPH"
 output: 
   bookdown::html_document2:
@@ -23,5 +23,3 @@ output:
 Funding: [1F31HL143900-01](https://reporter.nih.gov/project-details/9611122)
 
 GitHub repository: <https://github.com/michaeldgarber/diss>
-
-URL of this page: <https://michaeldgarber.github.io/diss/index.html>

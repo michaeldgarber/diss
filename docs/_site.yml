@@ -6,7 +6,7 @@ navbar:
     - icon: fa-home
       href: https://michaeldgarber.github.io/
       text: "MDG"
-    - text: "Atlanta bicycle infrastructure project"
+    - text: "Effects of bicycle infrastructure in ATL"
       href: index.html
 
 output:
